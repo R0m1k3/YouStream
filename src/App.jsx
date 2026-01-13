@@ -114,6 +114,12 @@ function App() {
         reader.readAsText(file);
     };
 
+    const handleCookieSync = () => {
+        if (!cookie.trim()) return alert('Veuillez coller un cookie.');
+        alert('Synchronisation via cookie en cours (Expérimental)...\nNote: Cette fonctionnalité nécessite une instance Invidious compatible ou un proxy.');
+        console.log('Cookie utilisé:', cookie);
+    };
+
     const handleMarkAsRead = (videoId) => {
         subscriptionService.markAsWatched(videoId);
         setVideos(prev => prev.filter(v => v.videoId !== videoId));
