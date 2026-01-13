@@ -1,0 +1,4 @@
+/* App specific styles can go here */
+.app-container {
+    min-height: 100vh;
+}
