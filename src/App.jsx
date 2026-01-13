@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import invidiousService from './services/invidiousService';
 import subscriptionService from './services/subscriptionService';
+import youtubeAuthService from './services/youtubeAuthService';
 import VideoCard from './components/VideoCard';
 import ChannelCard from './components/ChannelCard';
+import GoogleLoginButton from './components/GoogleLoginButton';
 
 function App() {
     const [videos, setVideos] = useState([]);
@@ -15,6 +17,12 @@ function App() {
     const [currentVideo, setCurrentVideo] = useState(null);
     const [viewingChannel, setViewingChannel] = useState(null);
     const [cookie, setCookie] = useState('');
+    const [isYoutubeConnected, setIsYoutubeConnected] = useState(youtubeAuthService.isLoggedIn());
+    const [youtubeUser, setYoutubeUser] = useState(youtubeAuthService.getUserInfo());
+    const [youtubeLoading, setYoutubeLoading] = useState(false);
+
+    // Client ID YouTube - À configurer
+    const YOUTUBE_CLIENT_ID = localStorage.getItem('youstream_yt_client_id') || '';
 
     useEffect(() => {
         if (activeTab === 'new') {
@@ -161,6 +169,45 @@ function App() {
         console.log('Cookie utilisé:', cookie);
     };
 
+    const handleYoutubeLogin = async () => {
+        const clientId = localStorage.getItem('youstream_yt_client_id');
+        if (!clientId) {
+            alert('Veuillez d\'abord configurer votre Client ID YouTube dans les paramètres.');
+            return;
+        }
+
+        setYoutubeLoading(true);
+        try {
+            youtubeAuthService.setClientId(clientId);
+            const result = await youtubeAuthService.login();
+            setIsYoutubeConnected(true);
+            setYoutubeUser(result.user);
+
+            // Récupérer et importer les abonnements
+            const ytSubs = await youtubeAuthService.getSubscriptions();
+            const merged = await subscriptionService.importFromJSON(ytSubs);
+            setSubscriptions([...merged]);
+            alert(`Connecté ! ${ytSubs.length} abonnements importés depuis YouTube.`);
+        } catch (error) {
+            console.error('Erreur connexion YouTube:', error);
+            alert(`Erreur de connexion: ${error.message}`);
+        } finally {
+            setYoutubeLoading(false);
+        }
+    };
+
+    const handleYoutubeLogout = () => {
+        youtubeAuthService.logout();
+        setIsYoutubeConnected(false);
+        setYoutubeUser(null);
+    };
+
+    const handleSaveClientId = (clientId) => {
+        localStorage.setItem('youstream_yt_client_id', clientId);
+        youtubeAuthService.setClientId(clientId);
+        alert('Client ID sauvegardé !');
+    };
+
     const handleMarkAsRead = (videoId) => {
         subscriptionService.markAsWatched(videoId);
         setVideos(prev => prev.filter(v => v.videoId !== videoId));
@@ -281,6 +328,52 @@ function App() {
                     ) : activeTab === 'settings' ? (
                         <div className="settings-view">
                             <h2>Paramètres & Compte</h2>
+
+                            <div className="settings-section youtube-section">
+                                <h3>🔴 Connexion YouTube</h3>
+                                <p>Connectez-vous pour importer automatiquement vos abonnements.</p>
+
+                                <GoogleLoginButton
+                                    isConnected={isYoutubeConnected}
+                                    userInfo={youtubeUser}
+                                    onLogin={handleYoutubeLogin}
+                                    onLogout={handleYoutubeLogout}
+                                    isLoading={youtubeLoading}
+                                />
+
+                                {!isYoutubeConnected && (
+                                    <div className="client-id-config" style={{ marginTop: '20px' }}>
+                                        <p style={{ fontSize: '12px', opacity: 0.7 }}>
+                                            Configurez d'abord votre Client ID Google Cloud :
+                                        </p>
+                                        <input
+                                            type="text"
+                                            placeholder="Votre Client ID OAuth 2.0"
+                                            defaultValue={YOUTUBE_CLIENT_ID}
+                                            className="client-id-input"
+                                            onBlur={(e) => handleSaveClientId(e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '10px',
+                                                marginTop: '8px',
+                                                borderRadius: '6px',
+                                                border: '1px solid rgba(255,255,255,0.2)',
+                                                background: 'rgba(255,255,255,0.05)',
+                                                color: 'inherit'
+                                            }}
+                                        />
+                                        <a
+                                            href="https://console.cloud.google.com/apis/credentials"
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            style={{ fontSize: '12px', color: '#4a9eff' }}
+                                        >
+                                            Créer un Client ID sur Google Cloud Console
+                                        </a>
+                                    </div>
+                                )}
+                            </div>
+
                             <div className="settings-section">
                                 <h3>Gestion de l'instance Invidious</h3>
                                 <p>Instance actuelle : <code>https://yewtu.be</code></p>
