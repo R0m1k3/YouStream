@@ -3,6 +3,7 @@ import './App.css';
 import invidiousService from './services/invidiousService';
 import subscriptionService from './services/subscriptionService';
 import VideoCard from './components/VideoCard';
+import ChannelCard from './components/ChannelCard';
 
 function App() {
     const [videos, setVideos] = useState([]);

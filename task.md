@@ -16,11 +16,15 @@ Initialisation Git, commit et push sur GitHub.
 - [x] Initialisation technique (Vite + Docker)
 - [ ] Conception du design (UI interactive)
 - [x] Implémentation du MVP 1 (Services & Flux)
-- [/] Tests et Déploiement
+- [x] Tests et Déploiement
   - [x] Test local via Docker
-  - [/] Initialisation Git et Commit [ ]
-  - [ ] Push sur le dépôt distant [ ]
+  - [x] Initialisation Git et Commit
+  - [x] Push sur le dépôt distant
+- [/] fonctionnalités avancées
+  - [/] Gestion des abonnements (S'abonner/Se désabonner) [ ]
+  - [ ] Vue détaillée d'une chaîne [ ]
+  - [ ] Liste des abonnements dans la sidebar [ ]
 
 ## Progress Log
 
-- 2026-01-13: Initialisation terminée. Services Invidious et Subscription implémentés. Test local via Docker réussi (conteneur lancé). Prêt pour le commit et le push.
+- 2026-01-13: Projet initialisé et poussé. Début de l'implémentation de la gestion des abonnements et de la vue chaîne.
