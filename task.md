@@ -20,10 +20,10 @@ Initialisation Git, commit et push sur GitHub.
   - [x] Test local via Docker
   - [x] Initialisation Git et Commit
   - [x] Push sur le dépôt distant
-- [/] fonctionnalités avancées
-  - [/] Gestion des abonnements (S'abonner/Se désabonner) [ ]
-  - [ ] Vue détaillée d'une chaîne [ ]
-  - [ ] Liste des abonnements dans la sidebar [ ]
+- [x] fonctionnalités avancées
+  - [x] Gestion des abonnements (S'abonner/Se désabonner)
+  - [x] Vue détaillée d'une chaîne
+  - [x] Liste des abonnements dans la sidebar
 
 ## Progress Log
 

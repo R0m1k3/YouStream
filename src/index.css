@@ -81,6 +81,30 @@ h1 {
   flex-direction: column;
   gap: 20px;
   border-right: 1px solid var(--hover-color);
+  justify-content: space-between;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 12px;
+  border-top: 1px solid var(--hover-color);
+}
+
+.import-btn {
+  display: block;
+  text-align: center;
+  padding: 8px;
+  background-color: var(--hover-color);
+  color: #aaaaaa;
+  font-size: 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.import-btn:hover {
+  background-color: #444;
+  color: white;
 }
 
 .sub-list h4 {

@@ -95,6 +95,24 @@ function App() {
         }
     };
 
+    const handleImportOPML = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            try {
+                const xmlContent = event.target.result;
+                const newSubs = await subscriptionService.importFromOPML(xmlContent);
+                setSubscriptions([...newSubs]);
+                alert('Import réussi ! Vos abonnements ont été ajoutés.');
+            } catch (error) {
+                alert('Erreur lors de l\'import du fichier.');
+            }
+        };
+        reader.readAsText(file);
+    };
+
     const handleMarkAsRead = (videoId) => {
         subscriptionService.markAsWatched(videoId);
         setVideos(prev => prev.filter(v => v.videoId !== videoId));
@@ -152,6 +170,12 @@ function App() {
                                 </ul>
                             </div>
                         )}
+                        <div className="sidebar-footer">
+                            <label className="import-btn">
+                                Import OPML
+                                <input type="file" accept=".xml,.opml" onChange={handleImportOPML} hidden />
+                            </label>
+                        </div>
                     </nav>
                 </aside>
 
