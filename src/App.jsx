@@ -138,8 +138,17 @@ function App() {
             try {
                 const content = event.target.result;
                 let newSubs;
+
+                // Détection format Netscape Cookie vs Favoris
+                if (content.includes('# Netscape HTTP Cookie File')) {
+                    alert("⚠️ Attention : Vous avez uploadé un fichier de Cookie et non de Favoris.\n\nPour des raisons de sécurité, nous ne pouvons pas utiliser vos cookies directement ici.\n\n✅ SOLUTION FACILE :\nUtilisez le 'Magic Button' (dans les paramètres) pour synchroniser vos abonnements en 1 clic !");
+                    return;
+                }
+
                 if (file.name.endsWith('.csv')) {
                     newSubs = await subscriptionService.importFromCSV(content);
+                } else if (file.name.endsWith('.html') || content.includes('<!DOCTYPE NETSCAPE-Bookmark-file-1>')) {
+                    newSubs = await subscriptionService.importFromNetscapeHTML(content);
                 } else {
                     newSubs = await subscriptionService.importFromOPML(content);
                 }
@@ -277,7 +286,7 @@ function App() {
                             </button>
                             <label className="import-btn">
                                 <span>📥</span> Importer abonnements
-                                <input type="file" accept=".xml,.opml,.csv" onChange={handleImportSubscriptions} hidden />
+                                <input type="file" accept=".xml,.opml,.csv,.html,.txt" onChange={handleImportSubscriptions} hidden />
                             </label>
                         </div>
                     </nav>

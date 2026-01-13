@@ -12,7 +12,9 @@ const INSTANCES = [
 
 class InvidiousService {
     constructor() {
-        this.baseUrl = INSTANCES[1]; // Utilisation de yewtu.be par défaut
+        // En développement (localhost), on utilise le proxy Vite (/api/invidious)
+        // En production, on devra aussi avoir un proxy Nginx ou utiliser une instance avec CORS autorisé
+        this.baseUrl = '/api/invidious';
     }
 
     /**

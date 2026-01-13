@@ -75,11 +75,19 @@ class SubscriptionService {
      */
     async importFromBase64(base64String) {
         try {
+            // Tentative 1: Décodage standard UTF-8 (compatible avec btoa(unescape(encodeURIComponent(s))))
             const jsonString = decodeURIComponent(escape(atob(base64String)));
             return this.importFromJSON(jsonString);
         } catch (error) {
-            console.error('Erreur import Base64:', error);
-            throw error;
+            console.warn('Echec décodage standard, tentative fallback...', error);
+            try {
+                // Tentative 2: Décodage brut (si pas d'encodage URI préalable, ou caractères simples)
+                const jsonString = atob(base64String);
+                return this.importFromJSON(jsonString);
+            } catch (error2) {
+                console.error('Erreur import Base64 fatale:', error2);
+                throw error2;
+            }
         }
     }
 
@@ -151,6 +159,50 @@ class SubscriptionService {
             return this._mergeAndSave(newSubs);
         } catch (error) {
             console.error('Erreur parsing CSV:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Importe des abonnements depuis un fichier Netscape Bookmark Format (HTML)
+     * Compatible avec l'export de favoris des navigateurs
+     */
+    async importFromNetscapeHTML(htmlString) {
+        try {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlString, 'text/html');
+            const links = doc.querySelectorAll('a');
+            const newSubs = [];
+
+            links.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && (href.includes('youtube.com/channel/') || href.includes('youtube.com/user/') || href.includes('youtube.com/c/') || href.includes('youtube.com/@'))) {
+                    let authorId = null;
+                    if (href.includes('/channel/')) {
+                        authorId = href.split('/channel/')[1].split('?')[0].split('/')[0];
+                    } else {
+                        // Pour les URLs /user/, /c/, /@, on ne peut pas déduire l'ID facilement sans API
+                        // On stocke l'URL comme ID temporaire pour Invidious qui sait souvent gérer les handles
+                        // Mais l'idéal est d'avoir l'ID UC...
+                        // Pour l'instant on tente de parser ce qu'on peut
+                        const parts = href.split('/');
+                        authorId = parts[parts.length - 1] || parts[parts.length - 2];
+                    }
+
+                    if (authorId) {
+                        newSubs.push({
+                            author: link.textContent.trim(),
+                            authorId: authorId, // Attention: peut être un handle
+                            authorUrl: href,
+                            authorThumbnails: []
+                        });
+                    }
+                }
+            });
+
+            return this._mergeAndSave(newSubs);
+        } catch (error) {
+            console.error('Erreur parsing Netscape HTML:', error);
             throw error;
         }
     }
