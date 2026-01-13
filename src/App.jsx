@@ -7,10 +7,13 @@ import ChannelCard from './components/ChannelCard';
 
 function App() {
     const [videos, setVideos] = useState([]);
+    const [channels, setChannels] = useState([]);
+    const [subscriptions, setSubscriptions] = useState(subscriptionService.getSubscriptions());
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [activeTab, setActiveTab] = useState('new'); // 'new', 'subs', 'favs'
+    const [activeTab, setActiveTab] = useState('new'); // 'new', 'subs', 'search', 'channel'
     const [currentVideo, setCurrentVideo] = useState(null);
+    const [viewingChannel, setViewingChannel] = useState(null);
 
     useEffect(() => {
         if (activeTab === 'new') {
@@ -50,15 +53,45 @@ function App() {
     const handleSearch = async (e) => {
         if (e.key === 'Enter' && searchQuery.trim()) {
             setLoading(true);
+            setCurrentVideo(null);
+            setViewingChannel(null);
             try {
-                const data = await invidiousService.search(searchQuery, 'video');
-                setVideos(data.filter(v => !subscriptionService.isWatched(v.videoId)));
+                const videoResults = await invidiousService.search(searchQuery, 'video');
+                const channelResults = await invidiousService.search(searchQuery, 'channel');
+
+                setVideos(videoResults.filter(v => !subscriptionService.isWatched(v.videoId)));
+                setChannels(channelResults);
                 setActiveTab('search');
             } catch (error) {
                 console.error('Erreur recherche:', error);
             } finally {
                 setLoading(false);
             }
+        }
+    };
+
+    const handleSubscribe = (channel) => {
+        const newSubs = subscriptionService.addSubscription(channel);
+        setSubscriptions([...newSubs]);
+    };
+
+    const handleUnsubscribe = (channelId) => {
+        const newSubs = subscriptionService.removeSubscription(channelId);
+        setSubscriptions([...newSubs]);
+    };
+
+    const handleChannelClick = async (channel) => {
+        setLoading(true);
+        setCurrentVideo(null);
+        setViewingChannel(channel);
+        setActiveTab('channel');
+        try {
+            const channelVideos = await invidiousService.getChannelVideos(channel.authorId);
+            setVideos(channelVideos.filter(v => !subscriptionService.isWatched(v.videoId)));
+        } catch (error) {
+            console.error('Erreur chargement vidéos chaîne:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -106,8 +139,19 @@ function App() {
                             >
                                 Abonnements
                             </li>
-                            <li>Favoris</li>
                         </ul>
+                        {subscriptions.length > 0 && (
+                            <div className="sub-list">
+                                <h4>Mes chaînes</h4>
+                                <ul>
+                                    {subscriptions.map(sub => (
+                                        <li key={sub.authorId} onClick={() => handleChannelClick(sub)}>
+                                            {sub.author}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
                     </nav>
                 </aside>
 
@@ -131,28 +175,60 @@ function App() {
                     ) : null}
 
                     <div className="feed-header">
-                        <h2>{activeTab === 'search' ? `Résultats pour "${searchQuery}"` : 'Dernières nouveautés'}</h2>
+                        {activeTab === 'search' ? (
+                            <h2>Résultats pour "{searchQuery}"</h2>
+                        ) : activeTab === 'channel' ? (
+                            <div className="channel-header-view">
+                                <img src={viewingChannel.authorThumbnails?.[viewingChannel.authorThumbnails.length - 1]?.url} alt="" />
+                                <h2>{viewingChannel.author}</h2>
+                                {subscriptions.find(s => s.authorId === viewingChannel.authorId) ? (
+                                    <button onClick={() => handleUnsubscribe(viewingChannel.authorId)}>Désabonner</button>
+                                ) : (
+                                    <button onClick={() => handleSubscribe(viewingChannel)}>S'abonner</button>
+                                )}
+                            </div>
+                        ) : (
+                            <h2>Dernières nouveautés</h2>
+                        )}
                     </div>
 
                     {loading ? (
                         <div className="loader-container">
                             <div className="loader"></div>
-                            <p>Chargement des vidéos...</p>
+                            <p>Chargement...</p>
                         </div>
                     ) : (
-                        <div className="video-grid">
-                            {videos.length > 0 ? (
-                                videos.map(video => (
-                                    <VideoCard
-                                        key={video.videoId}
-                                        video={video}
-                                        onMarkAsRead={handleMarkAsRead}
-                                        onPlay={handlePlay}
-                                    />
-                                ))
-                            ) : (
-                                <p className="placeholder-text">Aucune vidéo trouvée ou tout a été lu !</p>
+                        <div className="content-scroll">
+                            {activeTab === 'search' && channels.length > 0 && (
+                                <div className="channels-results">
+                                    <h3>Chaînes</h3>
+                                    {channels.slice(0, 3).map(channel => (
+                                        <ChannelCard
+                                            key={channel.authorId}
+                                            channel={channel}
+                                            isSubscribed={subscriptions.find(s => s.authorId === channel.authorId)}
+                                            onSubscribe={handleSubscribe}
+                                            onUnsubscribe={handleUnsubscribe}
+                                            onClick={handleChannelClick}
+                                        />
+                                    ))}
+                                </div>
                             )}
+
+                            <div className="video-grid">
+                                {videos.length > 0 ? (
+                                    videos.map(video => (
+                                        <VideoCard
+                                            key={video.videoId}
+                                            video={video}
+                                            onMarkAsRead={handleMarkAsRead}
+                                            onPlay={handlePlay}
+                                        />
+                                    ))
+                                ) : (
+                                    <p className="placeholder-text">Aucunes vidéos à afficher.</p>
+                                )}
+                            </div>
                         </div>
                     )}
                 </section>
