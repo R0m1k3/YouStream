@@ -144,18 +144,24 @@ function App() {
             <main className="content">
                 <aside className="sidebar">
                     <nav>
-                        <ul>
+                        <ul className="nav-links">
                             <li
                                 className={activeTab === 'new' ? 'active' : ''}
                                 onClick={() => setActiveTab('new')}
                             >
-                                Nouveautés
+                                <span className="icon">🔥</span> Nouveautés
                             </li>
                             <li
                                 className={activeTab === 'subs' ? 'active' : ''}
                                 onClick={() => setActiveTab('subs')}
                             >
-                                Abonnements
+                                <span className="icon">📺</span> Abonnements
+                            </li>
+                            <li
+                                className={activeTab === 'favs' ? 'active' : ''}
+                                onClick={() => setActiveTab('favs')}
+                            >
+                                <span className="icon">⭐</span> Favoris
                             </li>
                         </ul>
                         {subscriptions.length > 0 && (
@@ -171,8 +177,11 @@ function App() {
                             </div>
                         )}
                         <div className="sidebar-footer">
+                            <button className="settings-btn" onClick={() => setActiveTab('settings')}>
+                                <span className="icon">⚙️</span> Paramètres
+                            </button>
                             <label className="import-btn">
-                                Import OPML
+                                <span>📥</span> Import OPML
                                 <input type="file" accept=".xml,.opml" onChange={handleImportOPML} hidden />
                             </label>
                         </div>
@@ -220,6 +229,42 @@ function App() {
                         <div className="loader-container">
                             <div className="loader"></div>
                             <p>Chargement...</p>
+                        </div>
+                    ) : activeTab === 'settings' ? (
+                        <div className="settings-view">
+                            <h2>Paramètres & Compte</h2>
+                            <div className="settings-section">
+                                <h3>Gestion de l'instance Invidious</h3>
+                                <p>Instance actuelle : <code>https://yewtu.be</code></p>
+                                <button className="secondary-btn">Changer d'instance</button>
+                            </div>
+
+                            <div className="settings-section">
+                                <h3>Synchronisation Directe (Avancé)</h3>
+                                <p>Pour synchroniser vos abonnements sans passer par un fichier, vous pouvez fournir votre cookie de session YouTube (experimental).</p>
+                                <textarea
+                                    placeholder="Collez votre cookie ici..."
+                                    className="cookie-input"
+                                ></textarea>
+                                <button className="accent-btn">Synchroniser maintenant</button>
+                                <p className="help-text">⚠️ Vos cookies restent localement dans votre navigateur.</p>
+                            </div>
+
+                            <div className="settings-section">
+                                <h3>Données Locales</h3>
+                                <p>Abonnements : {subscriptions.length}</p>
+                                <button
+                                    className="danger-btn"
+                                    onClick={() => {
+                                        if (window.confirm('Voulez-vous vraiment tout supprimer ?')) {
+                                            localStorage.clear();
+                                            window.location.reload();
+                                        }
+                                    }}
+                                >
+                                    Effacer toutes les données
+                                </button>
+                            </div>
                         </div>
                     ) : (
                         <div className="content-scroll">

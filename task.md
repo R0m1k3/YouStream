@@ -6,7 +6,7 @@ Brainstorming initial pour la création d'une nouvelle application nommée "YouS
 
 ## Current Focus
 
-Initialisation Git, commit et push sur GitHub.
+Implémentation d'un système de gestion de compte (Cookie Import) et amélioration de la Sidebar.
 
 ## Master Plan
 
