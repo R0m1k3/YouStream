@@ -22,6 +22,31 @@ function App() {
         }
     }, [activeTab]);
 
+    // Détection automatique d'import via Bookmarklet (URL sync=...)
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const syncData = urlParams.get('sync');
+        if (syncData) {
+            handleAutoImport(syncData);
+        }
+    }, []);
+
+    const handleAutoImport = async (base64Data) => {
+        setLoading(true);
+        try {
+            const newSubs = await subscriptionService.importFromBase64(base64Data);
+            setSubscriptions([...newSubs]);
+            // Nettoyage de l'URL pour éviter les ré-imports au refresh
+            window.history.replaceState({}, document.title, "/");
+            alert(`Synchronisation automatique réussie ! ${newSubs.length} abonnements ajoutés.`);
+            setActiveTab('subs');
+        } catch (error) {
+            console.error('Erreur import auto:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const loadNewVideos = async () => {
         setLoading(true);
         try {
@@ -262,25 +287,38 @@ function App() {
                                 <button className="secondary-btn">Changer d'instance</button>
                             </div>
 
-                            <div className="settings-section">
-                                <h3>🚀 Synchronisation Rapide (Méthode recommandée)</h3>
-                                <p>C'est le moyen le plus rapide d'importer vos abonnements YouTube :</p>
-                                <ol className="help-list">
-                                    <li>Allez sur votre page <a href="https://www.youtube.com/feed/channels" target="_blank">YouTube Subscriptions</a>.</li>
-                                    <li>Appuyez sur <code>F12</code> (ou clic droit {'>'} Inspecter) et allez dans l'onglet <strong>Console</strong>.</li>
-                                    <li>Copiez ce script et collez-le dans la console :</li>
+                            <div className="settings-section magic-section">
+                                <h3>✨ Magic Button (Synchronisation en 1 clic)</h3>
+                                <p>Le moyen le plus simple : glissez ce bouton dans votre barre de favoris.</p>
+
+                                <a
+                                    className="bookmarklet-btn"
+                                    href={`javascript:(function(){const s=btoa(unescape(encodeURIComponent(JSON.stringify(Array.from(document.querySelectorAll('ytd-channel-renderer, ytd-grid-channel-renderer')).map(e=>{const a=e.querySelector('a#main-link, a#channel-info, a');return{author:e.querySelector('#text, #channel-title, #title').innerText.trim(),authorId:a.href.split('/').pop()}}).filter(c=>c.authorId)))));window.location.href='http://localhost:3000/?sync='+s;})();`}
+                                    onClick={(e) => e.preventDefault()}
+                                >
+                                    🚀 YouStream Sync
+                                </a>
+
+                                <ol className="help-list" style={{ marginTop: '20px' }}>
+                                    <li>Glissez le bouton ci-dessus dans votre barre de favoris (Ctrl+Shift+B pour l'afficher).</li>
+                                    <li>Allez sur votre page <a href="https://www.youtube.com/feed/channels" target="_blank" rel="noreferrer">Abonnements YouTube</a>.</li>
+                                    <li>Cliquez sur le favori <strong>"YouStream Sync"</strong>.</li>
                                 </ol>
+                            </div>
+
+                            <div className="settings-section">
+                                <h3>⚙️ Import Manuel (Script)</h3>
+                                <p>Si le bouton ne fonctionne pas, copiez ce script dans la console (F12) :</p>
                                 <div className="code-block">
-                                    <code>{`const s=JSON.stringify(Array.from(document.querySelectorAll('ytd-channel-renderer')).map(e=>({author:e.querySelector('#text').innerText,authorId:e.querySelector('a').href.split('/').pop()})));console.log(s);copy(s);alert('Copié !');`}</code>
+                                    <code>{`const s=JSON.stringify(Array.from(document.querySelectorAll('ytd-channel-renderer, ytd-grid-channel-renderer')).map(e=>{const a=e.querySelector('a#main-link, a#channel-info, a');return{author:e.querySelector('#text, #channel-title, #title').innerText.trim(),authorId:a.href.split('/').pop()}}).filter(c=>c.authorId));console.log(s);copy(s);alert('Copié !');`}</code>
                                 </div>
-                                <p>Ensuite, collez le résultat ci-dessous :</p>
                                 <textarea
                                     placeholder="Collez le résultat ici..."
                                     className="cookie-input"
                                     value={cookie}
                                     onChange={(e) => setCookie(e.target.value)}
                                 ></textarea>
-                                <button className="accent-btn" onClick={() => handleJSONSync(cookie)}>Synchroniser instantanément</button>
+                                <button className="accent-btn" onClick={() => handleJSONSync(cookie)}>Importer manuellement</button>
                             </div>
 
                             <div className="settings-section">

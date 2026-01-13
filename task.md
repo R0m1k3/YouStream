@@ -24,6 +24,7 @@ Implémentation d'un système de gestion de compte (Cookie Import) et améliorat
   - [x] Gestion des abonnements (S'abonner/Se désabonner)
   - [x] Vue détaillée d'une chaîne
   - [x] Liste des abonnements dans la sidebar
+  - [x] Synchronisation Rapide via Script (Magic JSON)
 
 ## Progress Log
 
