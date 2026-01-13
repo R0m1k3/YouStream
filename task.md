@@ -27,4 +27,4 @@ Implémentation d'un système de gestion de compte (Cookie Import) et améliorat
 
 ## Progress Log
 
-- 2026-01-13: Projet initialisé et poussé. Début de l'implémentation de la gestion des abonnements et de la vue chaîne.
+- 2026-01-13: Projet initialisé et poussé. Import OPML, gestion des cookies et refonte de la Sidebar terminés. Docker et Git synchronisés.

@@ -96,19 +96,24 @@ function App() {
         }
     };
 
-    const handleImportOPML = async (e) => {
+    const handleImportSubscriptions = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
         const reader = new FileReader();
         reader.onload = async (event) => {
             try {
-                const xmlContent = event.target.result;
-                const newSubs = await subscriptionService.importFromOPML(xmlContent);
+                const content = event.target.result;
+                let newSubs;
+                if (file.name.endsWith('.csv')) {
+                    newSubs = await subscriptionService.importFromCSV(content);
+                } else {
+                    newSubs = await subscriptionService.importFromOPML(content);
+                }
                 setSubscriptions([...newSubs]);
-                alert('Import réussi ! Vos abonnements ont été ajoutés.');
+                alert(`Import réussi ! ${newSubs.length} abonnements au total.`);
             } catch (error) {
-                alert('Erreur lors de l\'import du fichier.');
+                alert('Erreur lors de l\'import du fichier. Vérifiez le format (XML ou CSV).');
             }
         };
         reader.readAsText(file);
@@ -188,8 +193,8 @@ function App() {
                                 <span className="icon">⚙️</span> Paramètres
                             </button>
                             <label className="import-btn">
-                                <span>📥</span> Import OPML
-                                <input type="file" accept=".xml,.opml" onChange={handleImportOPML} hidden />
+                                <span>📥</span> Importer abonnements
+                                <input type="file" accept=".xml,.opml,.csv" onChange={handleImportSubscriptions} hidden />
                             </label>
                         </div>
                     </nav>
@@ -247,16 +252,24 @@ function App() {
                             </div>
 
                             <div className="settings-section">
-                                <h3>Synchronisation Directe (Avancé)</h3>
-                                <p>Pour synchroniser vos abonnements sans passer par un fichier, vous pouvez fournir votre cookie de session YouTube (experimental).</p>
+                                <h3>🚀 Synchronisation Rapide (Méthode recommandée)</h3>
+                                <p>C'est le moyen le plus rapide d'importer vos abonnements YouTube :</p>
+                                <ol className="help-list">
+                                    <li>Allez sur votre page <a href="https://www.youtube.com/feed/channels" target="_blank">YouTube Subscriptions</a>.</li>
+                                    <li>Appuyez sur <code>F12</code> (ou clic droit {'>'} Inspecter) et allez dans l'onglet <strong>Console</strong>.</li>
+                                    <li>Copiez ce script et collez-le dans la console :</li>
+                                </ol>
+                                <div className="code-block">
+                                    <code>{`const s=JSON.stringify(Array.from(document.querySelectorAll('ytd-channel-renderer')).map(e=>({author:e.querySelector('#text').innerText,authorId:e.querySelector('a').href.split('/').pop()})));console.log(s);copy(s);alert('Copié !');`}</code>
+                                </div>
+                                <p>Ensuite, collez le résultat ci-dessous :</p>
                                 <textarea
-                                    placeholder="Collez votre cookie ici..."
+                                    placeholder="Collez le résultat ici..."
                                     className="cookie-input"
                                     value={cookie}
                                     onChange={(e) => setCookie(e.target.value)}
                                 ></textarea>
-                                <button className="accent-btn" onClick={handleCookieSync}>Synchroniser maintenant</button>
-                                <p className="help-text">⚠️ Vos cookies restent localement dans votre navigateur.</p>
+                                <button className="accent-btn" onClick={() => handleJSONSync(cookie)}>Synchroniser instantanément</button>
                             </div>
 
                             <div className="settings-section">
