@@ -24,8 +24,9 @@ Implémentation d'un système de gestion de compte (Cookie Import) et améliorat
   - [x] Gestion des abonnements (S'abonner/Se désabonner)
   - [x] Vue détaillée d'une chaîne
   - [x] Liste des abonnements dans la sidebar
-  - [x] Synchronisation Rapide via Script (Magic JSON)
+  - [x] Synchronisation Rapide (Magic Button)
+  - [x] Détection automatique d'import via URL
 
 ## Progress Log
 
-- 2026-01-13: Projet initialisé et poussé. Import OPML, gestion des cookies et refonte de la Sidebar terminés. Docker et Git synchronisés.
+- 2026-01-13: Implémentation du Magic Button pour la synchronisation automatique en un clic. Docker et Git totalement synchronisés.

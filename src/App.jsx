@@ -293,7 +293,7 @@ function App() {
 
                                 <a
                                     className="bookmarklet-btn"
-                                    href={`javascript:(function(){const s=btoa(unescape(encodeURIComponent(JSON.stringify(Array.from(document.querySelectorAll('ytd-channel-renderer, ytd-grid-channel-renderer')).map(e=>{const a=e.querySelector('a#main-link, a#channel-info, a');return{author:e.querySelector('#text, #channel-title, #title').innerText.trim(),authorId:a.href.split('/').pop()}}).filter(c=>c.authorId)))));window.location.href='http://localhost:3000/?sync='+s;})();`}
+                                    href={`javascript:(function(){function g(){let d=window.ytInitialData,i=[];try{let c=d.contents.twoColumnBrowseResultsRenderer.tabs[0].tabRenderer.content.sectionListRenderer.contents[0].itemSectionRenderer.contents[0].gridRenderer.items;i=c.map(x=>({author:x.gridChannelRenderer.title.simpleText,authorId:x.gridChannelRenderer.channelId}))}catch(e){i=Array.from(document.querySelectorAll('ytd-channel-renderer,ytd-grid-channel-renderer')).map(e=>{let a=e.querySelector('a#main-link,a#channel-info,a');return{author:e.querySelector('#text,#channel-title,#title').innerText.trim(),authorId:a.href.split('/').pop()}})}return i.filter(x=>x.authorId)}const s=btoa(unescape(encodeURIComponent(JSON.stringify(g()))));window.location.href='http://localhost:3000/?sync='+s;})();`}
                                     onClick={(e) => e.preventDefault()}
                                 >
                                     🚀 YouStream Sync
