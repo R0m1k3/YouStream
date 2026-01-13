@@ -10,3 +10,49 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+    depends_on:
+      - invidious
+
+  invidious:
+    image: quay.io/invidious/invidious:latest
+    restart: always
+    ports:
+      - "3002:3000" # Expose sur 3002 (3001 occupé)
+    volumes:
+      - ./config/invidious/config.yml:/invidious/config/config.yml
+      #- environment:
+      #- INVIDIOUS_DB_USER=kemal
+      #  - INVIDIOUS_DB_PASSWORD=kemal
+      #  - INVIDIOUS_DB_NAME=invidious
+      #  - INVIDIOUS_DB_HOST=postgres
+      #  - INVIDIOUS_DB_PORT=5432
+      #  - INVIDIOUS_SIGNATURE_SERVER_ENABLED=0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      #inv-sig-helper:
+      #  condition: service_started
+
+  inv-sig-helper:
+    image: quay.io/invidious/inv-sig-helper:latest
+    restart: always
+    environment:
+      - RUST_LOG=info
+
+  postgres:
+    image: postgres:14
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=kemal
+      - POSTGRES_PASSWORD=kemal
+      - POSTGRES_DB=invidious
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U kemal -d invidious" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

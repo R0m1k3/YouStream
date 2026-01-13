@@ -1,0 +1,10 @@
+db:
+  dbname: invidious
+  user: kemal
+  password: kemal
+  host: postgres
+  port: 5432
+
+check_tables: true
+signature_server_enabled: false
+hmac_key: "I-am-a-very-secret-key-change-me-in-production"

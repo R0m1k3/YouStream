@@ -36,12 +36,42 @@ class InvidiousService {
      */
     async getChannelVideos(channelId) {
         try {
+            // Si c'est un handle (@user), on doit d'abord trouver l'ID réel (UC...)
+            if (channelId.startsWith('@')) {
+                console.log(`Résolution du handle ${channelId}...`);
+                const realId = await this.resolveHandle(channelId);
+                if (realId) {
+                    channelId = realId;
+                } else {
+                    console.warn(`Impossible de résoudre le handle ${channelId}`);
+                    return []; // Ou throw, mais return [] évite de casser toute la page
+                }
+            }
+
             const response = await fetch(`${this.baseUrl}/api/v1/channels/${channelId}/videos`);
             if (!response.ok) throw new Error('Erreur lors de la récupération des vidéos de la chaîne');
             return await response.json();
         } catch (error) {
             console.error('InvidiousService.getChannelVideos error:', error);
             throw error;
+        }
+    }
+
+    /**
+     * Résout un handle (@user) en channelId (UC...) via la recherche
+     */
+    async resolveHandle(handle) {
+        try {
+            // Recherche du handle comme chaîne
+            const results = await this.search(handle, 'channel');
+            // On espère que le premier résultat est le bon
+            if (results && results.length > 0) {
+                return results[0].authorId;
+            }
+            return null;
+        } catch (error) {
+            console.error('Erreur résolution handle:', error);
+            return null;
         }
     }
 
