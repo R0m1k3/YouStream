@@ -119,6 +119,17 @@ function App() {
         reader.readAsText(file);
     };
 
+    const handleJSONSync = async (jsonText) => {
+        try {
+            const newSubs = await subscriptionService.importFromJSON(jsonText);
+            setSubscriptions([...newSubs]);
+            alert(`Succès ! ${newSubs.length} abonnements synchronisés.`);
+            setCookie(''); // On vide le champ après succès
+        } catch (error) {
+            alert('Format de données invalide. Utilisez le script fourni sur YouTube.');
+        }
+    };
+
     const handleCookieSync = () => {
         if (!cookie.trim()) return alert('Veuillez coller un cookie.');
         alert('Synchronisation via cookie en cours (Expérimental)...\nNote: Cette fonctionnalité nécessite une instance Invidious compatible ou un proxy.');
