@@ -14,6 +14,7 @@ function App() {
     const [activeTab, setActiveTab] = useState('new'); // 'new', 'subs', 'search', 'channel'
     const [currentVideo, setCurrentVideo] = useState(null);
     const [viewingChannel, setViewingChannel] = useState(null);
+    const [cookie, setCookie] = useState('');
 
     useEffect(() => {
         if (activeTab === 'new') {
@@ -245,8 +246,10 @@ function App() {
                                 <textarea
                                     placeholder="Collez votre cookie ici..."
                                     className="cookie-input"
+                                    value={cookie}
+                                    onChange={(e) => setCookie(e.target.value)}
                                 ></textarea>
-                                <button className="accent-btn">Synchroniser maintenant</button>
+                                <button className="accent-btn" onClick={handleCookieSync}>Synchroniser maintenant</button>
                                 <p className="help-text">⚠️ Vos cookies restent localement dans votre navigateur.</p>
                             </div>
 
