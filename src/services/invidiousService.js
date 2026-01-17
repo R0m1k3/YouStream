@@ -24,7 +24,18 @@ class InvidiousService {
         try {
             const response = await fetch(`${this.baseUrl}/api/v1/search?q=${encodeURIComponent(query)}&type=${type}`);
             if (!response.ok) throw new Error('Erreur lors de la recherche');
-            return await response.json();
+            const results = await response.json();
+
+            // Normalisation des URLs des résultats de recherche
+            return results.map(item => {
+                if (item.videoThumbnails) {
+                    item.videoThumbnails = item.videoThumbnails.map(t => ({ ...t, url: this.normalizeUrl(t.url) }));
+                }
+                if (item.authorThumbnails) {
+                    item.authorThumbnails = item.authorThumbnails.map(t => ({ ...t, url: this.normalizeUrl(t.url) }));
+                }
+                return item;
+            });
         } catch (error) {
             console.error('InvidiousService.search error:', error);
             throw error;
@@ -63,7 +74,22 @@ class InvidiousService {
 
             if (videoList.length > 0) {
                 // Filtrer les vidéos invalides (sans ID ou titre) pour éviter les crashs UI
-                return videoList.filter(v => v.videoId && v.title);
+                return videoList.filter(v => v.videoId && v.title).map(v => {
+                    // Réécriture des URLs pour passer par le proxy local
+                    if (v.videoThumbnails) {
+                        v.videoThumbnails = v.videoThumbnails.map(t => ({
+                            ...t,
+                            url: this.normalizeUrl(t.url)
+                        }));
+                    }
+                    if (v.authorThumbnails) {
+                        v.authorThumbnails = v.authorThumbnails.map(t => ({
+                            ...t,
+                            url: this.normalizeUrl(t.url)
+                        }));
+                    }
+                    return v;
+                });
             }
 
             console.warn(`Format inattendu pour les vidéos de la chaîne ${channelId}:`, data);
@@ -72,6 +98,26 @@ class InvidiousService {
             console.error(`InvidiousService.getChannelVideos error pour ${channelId}:`, error);
             return []; // Sécurité : toujours retourner un tableau
         }
+    }
+
+    normalizeUrl(url) {
+        if (!url) return url;
+        // Si c'est déjà une URL relative, on s'assure qu'elle est propre
+        if (url.startsWith('/')) return url;
+
+        // Si c'est une URL absolue Google/Youtube, on la transforme en relative pour le proxy
+        try {
+            const urlObj = new URL(url);
+            if (urlObj.pathname.startsWith('/vi/')) {
+                return urlObj.pathname; // /vi/videoId/mqdefault.jpg -> géré par Nginx
+            }
+            if (urlObj.pathname.startsWith('/ggpht/')) {
+                return urlObj.pathname; // /ggpht/... -> géré par Nginx
+            }
+        } catch (e) {
+            // URL invalide, on laisse telle quelle
+        }
+        return url;
     }
 
     /**
