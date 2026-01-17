@@ -6,6 +6,7 @@ import youtubeAuthService from './services/youtubeAuthService';
 import VideoCard from './components/VideoCard';
 import ChannelCard from './components/ChannelCard';
 import GoogleLoginButton from './components/GoogleLoginButton';
+import { useFeed } from './hooks/useFeed';
 
 function App() {
     const [videos, setVideos] = useState([]);
@@ -20,15 +21,22 @@ function App() {
     const [isYoutubeConnected, setIsYoutubeConnected] = useState(youtubeAuthService.isLoggedIn());
     const [youtubeUser, setYoutubeUser] = useState(youtubeAuthService.getUserInfo());
     const [youtubeLoading, setYoutubeLoading] = useState(false);
+    const [channelFilter, setChannelFilter] = useState('');
 
-    // Client ID YouTube - À configurer
     const YOUTUBE_CLIENT_ID = localStorage.getItem('youstream_yt_client_id') || '';
+
+    // React Query Feed
+    const { videos: feedVideos, isLoading: feedLoading } = useFeed(subscriptions);
 
     useEffect(() => {
         if (activeTab === 'new') {
-            loadNewVideos();
+            if (subscriptions.length > 0) {
+                setVideos(feedVideos);
+            } else {
+                loadTrendingFallback();
+            }
         }
-    }, [activeTab]);
+    }, [activeTab, subscriptions, feedVideos]);
 
     // Détection automatique d'import via Bookmarklet (URL sync=...)
     useEffect(() => {
@@ -55,59 +63,13 @@ function App() {
         }
     };
 
-    const loadNewVideos = async () => {
+    const loadTrendingFallback = async () => {
         setLoading(true);
         try {
-            // Pour le MVP, si pas d'abonnements, on montre des tendances ou une recherche par défaut
-            const subs = subscriptionService.getSubscriptions();
-
-            if (subs.length === 0) {
-                // Fallback sur une recherche "trending" si pas d'abonnements
-                const data = await invidiousService.search('trending', 'video');
-                setVideos(data.filter(v => !subscriptionService.isWatched(v.videoId)));
-            } else {
-                // Récupérer les vidéos de chaque chaîne
-                let allVideos = [];
-                const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
-                const now = Date.now();
-
-                for (const sub of subs) {
-                    try {
-                        let authorId = sub.authorId;
-
-                        // Si c'est un handle, on le résout et on sauvegarde l'ID réel
-                        if (authorId.startsWith('@')) {
-                            console.log(`Résolution unique du handle ${authorId}...`);
-                            const realId = await invidiousService.resolveHandle(authorId);
-                            if (realId) {
-                                subscriptionService.updateSubscriptionId(authorId, realId);
-                                authorId = realId;
-                            }
-                        }
-
-                        const channelVideos = await invidiousService.getChannelVideos(authorId);
-                        if (Array.isArray(channelVideos)) {
-                            // Filtrer: Moins d'une semaine
-                            const recent = channelVideos.filter(v => {
-                                if (!v.published) return false;
-                                const pubDate = new Date(v.published).getTime();
-                                return (now - pubDate) < ONE_WEEK;
-                            });
-                            allVideos = [...allVideos, ...recent];
-                        }
-                    } catch (e) {
-                        console.error(`Erreur pour la chaîne ${sub.author}:`, e);
-                    }
-                }
-
-                // Trier par date (plus récent en premier)
-                allVideos.sort((a, b) => new Date(b.published) - new Date(a.published));
-
-                // Limiter à 50 vidéos max
-                setVideos(allVideos.slice(0, 50));
-            }
+            const data = await invidiousService.search('trending', 'video');
+            setVideos(data.filter(v => !subscriptionService.isWatched(v.videoId)));
         } catch (error) {
-            console.error('Erreur chargement vidéos:', error);
+            console.error('Erreur loading trending:', error);
         } finally {
             setLoading(false);
         }
@@ -299,39 +261,32 @@ function App() {
                                 className={activeTab === 'new' ? 'active' : ''}
                                 onClick={() => setActiveTab('new')}
                             >
-                                <span className="icon">🔥</span> Nouveautés
+                                <svg className="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.09 4.56c-.7-1.03-1.5-1.99-2.4-2.85-.35-.34-.94-.02-.84.46.19.94.39 2.18.39 3.29 0 2.06-1.35 3.73-3.41 3.73-1.54 0-2.8-.93-3.35-2.26-.1-.2-.14-.32-.2-.48-.11-.3-.5-.41-.73-.15-1.71 1.89-2.67 4.39-2.67 6.97 0 4.7 3.95 8.77 9.12 8.77s9.12-4.04 9.12-8.77c0-3.19-1.86-6.15-5.03-8.71zm-5.97 13.87c-1.45 0-2.63-1.18-2.63-2.63 0-1.19.72-2.14 1.91-2.53 1.19-.39 2.55-.04 3.34 1.01.65.86.61 2.03-.08 2.86-.62.72-1.55 1.29-2.54 1.29z" /></svg>
+                                Nouveautés
                             </li>
                             <li
                                 className={activeTab === 'subs' ? 'active' : ''}
                                 onClick={() => setActiveTab('subs')}
                             >
-                                <span className="icon">📺</span> Abonnements
+                                <svg className="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 12.5v-9l6 4.5-6 4.5z" /></svg>
+                                Abonnements
                             </li>
                             <li
                                 className={activeTab === 'favs' ? 'active' : ''}
                                 onClick={() => setActiveTab('favs')}
                             >
-                                <span className="icon">⭐</span> Favoris
+                                <svg className="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" /></svg>
+                                Favoris
                             </li>
                         </ul>
-                        {subscriptions.length > 0 && (
-                            <div className="sub-list">
-                                <h4>Mes chaînes</h4>
-                                <ul>
-                                    {subscriptions.map(sub => (
-                                        <li key={sub.authorId} onClick={() => handleChannelClick(sub)}>
-                                            {sub.author}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
                         <div className="sidebar-footer">
                             <button className="settings-btn" onClick={() => setActiveTab('settings')}>
-                                <span className="icon">⚙️</span> Paramètres
+                                <svg className="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" /></svg>
+                                Paramètres
                             </button>
                             <label className="import-btn">
-                                <span>📥</span> Importer abonnements
+                                <svg className="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" /></svg>
+                                Importer
                                 <input type="file" accept=".xml,.opml,.csv,.html,.txt" onChange={handleImportSubscriptions} hidden />
                             </label>
                         </div>
@@ -346,6 +301,7 @@ function App() {
                                 <video
                                     controls
                                     autoPlay
+                                    referrerPolicy="no-referrer"
                                     src={currentVideo.streamUrl}
                                     className="main-video-player"
                                 />
@@ -360,6 +316,17 @@ function App() {
                     <div className="feed-header">
                         {activeTab === 'search' ? (
                             <h2>Résultats pour "{searchQuery}"</h2>
+                        ) : activeTab === 'subs' ? (
+                            <div className="subs-header">
+                                <h2>Mes Abonnements ({subscriptions.length})</h2>
+                                <input
+                                    type="text"
+                                    placeholder="Filtrer les chaînes..."
+                                    value={channelFilter}
+                                    onChange={(e) => setChannelFilter(e.target.value)}
+                                    className="channel-filter-input"
+                                />
+                            </div>
                         ) : activeTab === 'channel' ? (
                             <div className="channel-header-view">
                                 <img src={viewingChannel.authorThumbnails?.[viewingChannel.authorThumbnails.length - 1]?.url} alt="" />
@@ -375,7 +342,7 @@ function App() {
                         )}
                     </div>
 
-                    {loading ? (
+                    {loading || (activeTab === 'new' && feedLoading) ? (
                         <div className="loader-container">
                             <div className="loader"></div>
                             <p>Chargement...</p>
@@ -433,6 +400,29 @@ function App() {
                                 <h3>Gestion de l'instance Invidious</h3>
                                 <p>Instance actuelle : <code>Locale (Docker)</code></p>
                                 <button className="secondary-btn">Changer d'instance</button>
+                            </div>
+
+                            <div className="settings-section">
+                                <h3>📺 Mes Abonnements ({subscriptions.length})</h3>
+                                {subscriptions.length > 0 ? (
+                                    <div className="subscription-manager">
+                                        {subscriptions.map(sub => (
+                                            <div key={sub.authorId} className="subscription-item">
+                                                <span className="sub-name" onClick={() => handleChannelClick(sub)}>
+                                                    {sub.author}
+                                                </span>
+                                                <button
+                                                    className="unsub-btn"
+                                                    onClick={() => handleUnsubscribe(sub.authorId)}
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p style={{ opacity: 0.6 }}>Aucun abonnement. Utilisez la recherche pour trouver des chaînes.</p>
+                                )}
                             </div>
 
                             <div className="settings-section magic-section">
@@ -500,6 +490,46 @@ function App() {
                                             onClick={handleChannelClick}
                                         />
                                     ))}
+                                </div>
+                            )}
+
+                            {activeTab === 'subs' && (
+                                <div className="channels-grid">
+                                    {subscriptions
+                                        .filter(sub =>
+                                            channelFilter === '' ||
+                                            sub.author.toLowerCase().includes(channelFilter.toLowerCase())
+                                        )
+                                        .map(sub => (
+                                            <div
+                                                key={sub.authorId}
+                                                className="channel-card-mini"
+                                                onClick={() => handleChannelClick(sub)}
+                                            >
+                                                {sub.authorThumbnails?.[0]?.url ? (
+                                                    <img
+                                                        className="channel-avatar-img"
+                                                        src={sub.authorThumbnails[0].url}
+                                                        alt={sub.author}
+                                                        onError={(e) => {
+                                                            e.target.style.display = 'none';
+                                                            e.target.nextSibling.style.display = 'flex';
+                                                        }}
+                                                    />
+                                                ) : null}
+                                                <div
+                                                    className="channel-avatar"
+                                                    style={{ display: sub.authorThumbnails?.[0]?.url ? 'none' : 'flex' }}
+                                                >
+                                                    {sub.author?.charAt(0).toUpperCase() || '?'}
+                                                </div>
+                                                <span className="channel-name">{sub.author}</span>
+                                            </div>
+                                        ))
+                                    }
+                                    {subscriptions.length === 0 && (
+                                        <p className="placeholder-text">Aucun abonnement. Recherchez des chaînes pour vous abonner.</p>
+                                    )}
                                 </div>
                             )}
 

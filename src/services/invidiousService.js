@@ -47,15 +47,17 @@ class InvidiousService {
      */
     async getChannelVideos(channelId) {
         try {
-            // Si c'est un handle (@user), on doit d'abord trouver l'ID réel (UC...)
-            if (channelId.startsWith('@')) {
-                console.log(`Résolution du handle ${channelId}...`);
+            channelId = decodeURIComponent(channelId);
+
+            // Si c'est un handle (@user) ou un nom d'utilisateur (pas un ID UC...), on résout
+            if (channelId.startsWith('@') || !channelId.startsWith('UC')) {
+                console.log(`Résolution du handle/nom ${channelId}...`);
                 const realId = await this.resolveHandle(channelId);
                 if (realId) {
                     channelId = realId;
                 } else {
                     console.warn(`Impossible de résoudre le handle ${channelId}`);
-                    return []; // Retourne un tableau vide au lieu de undefined/null
+                    // On tente quand même avec l'ID d'origine au cas où
                 }
             }
 

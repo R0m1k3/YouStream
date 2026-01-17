@@ -11,7 +11,8 @@ services:
     environment:
       - NODE_ENV=development
     depends_on:
-      - invidious
+      invidious:
+        condition: service_healthy
 
   invidious:
     image: quay.io/invidious/invidious:latest
@@ -20,26 +21,36 @@ services:
       - "3002:3000" # Expose sur 3002 (3001 occupé)
     volumes:
       - ./config/invidious/config.yml:/invidious/config/config.yml
-      #- environment:
-      #- INVIDIOUS_DB_USER=kemal
-      #  - INVIDIOUS_DB_PASSWORD=kemal
-      #  - INVIDIOUS_DB_NAME=invidious
-      #  - INVIDIOUS_DB_HOST=postgres
-      #  - INVIDIOUS_DB_PORT=5432
-      #  - INVIDIOUS_SIGNATURE_SERVER_ENABLED=0
+    environment:
+      - INVIDIOUS_INVIDIOUS_COMPANION_PRIVATE_URL=http://invidious-companion:8282
+      - INVIDIOUS_INVIDIOUS_COMPANION_TOKEN_PRIVATE_KEY=0123456789abcdef
+      - INVIDIOUS_VISITOR_DATA=CgtvOWc2WlQ5bm1uZyjO9uGdBjIKCgJGUxIEZ3dwBg==
+
+      - INVIDIOUS_HMAC_KEY=0123456789abcdef
+      - INVIDIOUS_LOG_LEVEL=debug
+    healthcheck:
+      test: wget --spider http://127.0.0.1:3000/api/v1/stats || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
     dns:
       - 8.8.8.8
     depends_on:
       postgres:
         condition: service_healthy
-      inv-sig-helper:
+      invidious-companion:
         condition: service_started
 
-  inv-sig-helper:
-    image: quay.io/invidious/inv-sig-helper:latest
+  invidious-companion:
+    image: quay.io/invidious/invidious-companion:latest
     restart: always
+    ports:
+      - "8282:8282"
     environment:
-      - RUST_LOG=info
+      - RUST_LOG=debug
+      - SERVER_SECRET_KEY=0123456789abcdef
+      - HMAC_KEY=0123456789abcdef
+      # - INVIDIOUS_URL=http://invidious:3000
     dns:
       - 8.8.8.8
 
