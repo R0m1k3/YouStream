@@ -13,9 +13,9 @@ Ensure that **100%** of network traffic (Video metadata, Thumbnails, Avatars, Vi
 
 ### 3.1. Infrastructure
 *   **Service:** `invidious` (Target: `quay.io/invidious/invidious:latest`)
-*   **Helper:** `inv-sig-helper` (Target: `quay.io/invidious/inv-sig-helper:latest`)
-    *   **Config:** `signature_server_enabled: true` in `config.yml`.
-    *   **Function:** Generates `&sig=` and `&lsig=` parameters for playback URLs.
+*   **Helper:** `invidious-companion` (Target: `quay.io/invidious/invidious-companion:latest`)
+    *   **Config:** Configured via `INVIDIOUS_CONFIG` JSON env var to ensure `token_private_key` synchronization.
+    *   **Function:** Handles request signing and token generation to prevent 403 Forbidden errors.
 
 ### 3.2. Network & Proxy (Nginx)
 The local Nginx server acts as the gateway to avoid CORS issues and expose internal Docker ports.
@@ -27,9 +27,10 @@ The local Nginx server acts as the gateway to avoid CORS issues and expose inter
 ### 3.3. Frontend Logic (`invidiousService.js`)
 *   **URL Normalization:** 
     *   All absolute URLs received from API (e.g., `https://lh3.googleusercontent.com/...`) are rewritten to relative proxy paths (e.g., `/ggpht/...`).
-*   **Stream Selection:**
-    *   Request `?local=true` from Invidious API to get proxy-ready URLs.
-    *   Algorithm preferentially selects `mp4` format (itag 22/18) for maximum browser compatibility.
+*   **Robust Channel Handling:**
+    *   Automatic resolution of Channel Handles (`@user`) and Usernames (`MécaniqueSportive`) to Channel IDs (`UC...`) before API calls.
+*   **Caching & State:**
+    *   Using `@tanstack/react-query` to cache responses and handle loading/error states gracefully.
 
 ### 3.4. Feed Optimization
 *   **"Nouveautés" (News) Tab**:
@@ -40,9 +41,14 @@ The local Nginx server acts as the gateway to avoid CORS issues and expose inter
     *   Lazy Loading: Only fetch channel videos when explicitly visiting the "Channel" page? (The user said "tu charges les vidéos... lorsque l on va sur la page"). For "News", we *must* fetch recent ones, but maybe we can optimize the query or response size.
     *   For now, we will apply the filtering logic client-side after strict fetching.
 
-## 4. Verification Criteria
-*   [x] No console errors (404/403) on load.
-*   [ ] "Nouveautés" shows only recent videos (< 1 week).
-*   [ ] "Nouveautés" list is capped at 50 items.
-*   [ ] Video plays immediately upon click (Stream URL must be reachable).
+## 4. Resolved Issues (2026-01-17)
+1.  **403 Forbidden on Playback**: Fixed by migrating to `invidious-companion` and ensuring secure key synchronization via JSON environment variables.
+2.  **500 Internal Server Error**: Fixed by implementing frontend resolution logic for channel names.
+3.  **502 Bad Gateway**: Fixed by implementing Docker healthchecks to enforce dependency startup order.
+4.  **Frontend Crash**: Fixed missing `ReactDOM` import.
 
+## 5. Verification Criteria
+*   [x] No console errors (404/403) on load.
+*   [x] "Nouveautés" shows only recent videos (< 1 week).
+*   [x] "Nouveautés" list is capped at 50 items.
+*   [x] Video plays immediately upon click (Stream URL must be reachable).

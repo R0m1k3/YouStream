@@ -11,7 +11,7 @@ YouStream is a lightweight, privacy-focused YouTube frontend designed to run loc
 
 ## 3. Architecture
 *   **Frontend:** React (Vite), vanilla CSS for styling.
-*   **Backend/Proxy:** Nginx (Reverse Proxy), Invidious (API & Scraping), Postgres (DB), inv-sig-helper (Signature Generation).
+*   **Backend/Proxy:** Nginx (Reverse Proxy), Invidious (API & Scraping), Postgres (DB), invidious-companion (Signature Generation & Token Proxy).
 *   **Infrastructure:** Docker Compose (All-in-one deployment).
 
 ## 4. Current Status
@@ -20,8 +20,9 @@ YouStream is a lightweight, privacy-focused YouTube frontend designed to run loc
 
 ## 5. Roadmap
 *   [x] Local Invidious Instance
-*   [x] Signature Verification (Fix 403)
+*   [x] Signature Verification (Fix 403) - *via Invidious Companion*
 *   [x] Local Image Proxying (Fix 404)
+*   [x] Frontend Performance Refactor (React Query)
 *   [ ] User Preferences Persistence (DB/LocalStore)
 *   [ ] Playlist Management
 *   [ ] Cast Support

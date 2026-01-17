@@ -1,0 +1,3 @@
+server_secret_key: "I-am-a-very-secret-key-change-me-in-production"
+invidious_url: "http://invidious:3000"
+hmac_key: "I-am-a-very-secret-key-change-me-in-production"
