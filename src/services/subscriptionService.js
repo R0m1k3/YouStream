@@ -44,6 +44,21 @@ class SubscriptionService {
     }
 
     /**
+     * Met à jour l'ID d'une chaîne (ex: remplacé handle @... par ID UC...)
+     */
+    updateSubscriptionId(oldId, newId) {
+        let subs = this.getSubscriptions();
+        subs = subs.map(s => {
+            if (s.authorId === oldId) {
+                return { ...s, authorId: newId };
+            }
+            return s;
+        });
+        localStorage.setItem(STORAGE_KEYS.SUBSCRIPTIONS, JSON.stringify(subs));
+        return subs;
+    }
+
+    /**
      * Récupère la liste des IDs de vidéos lues
      */
     getWatchedVideos() {

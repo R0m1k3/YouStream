@@ -73,7 +73,19 @@ function App() {
 
                 for (const sub of subs) {
                     try {
-                        const channelVideos = await invidiousService.getChannelVideos(sub.authorId);
+                        let authorId = sub.authorId;
+
+                        // Si c'est un handle, on le résout et on sauvegarde l'ID réel
+                        if (authorId.startsWith('@')) {
+                            console.log(`Résolution unique du handle ${authorId}...`);
+                            const realId = await invidiousService.resolveHandle(authorId);
+                            if (realId) {
+                                subscriptionService.updateSubscriptionId(authorId, realId);
+                                authorId = realId;
+                            }
+                        }
+
+                        const channelVideos = await invidiousService.getChannelVideos(authorId);
                         if (Array.isArray(channelVideos)) {
                             // Filtrer: Moins d'une semaine
                             const recent = channelVideos.filter(v => {
