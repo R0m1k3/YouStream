@@ -6,7 +6,7 @@ const ChannelCard = ({ channel, isSubscribed, onSubscribe, onUnsubscribe, onClic
         <div className="channel-card" onClick={() => onClick(channel)}>
             <div className="channel-avatar">
                 <img
-                    src={channel.authorThumbnails?.[0]?.url || 'https://via.placeholder.com/100'}
+                    src={channel.authorThumbnails?.[0]?.url || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBzbGljZSIgZm9jdXNhYmxlPSJmYWxzZSIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJQbGFjZWhvbGRlciI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzU1NSI+PC9yZWN0Pjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmaWxsPSIjMzMzIiBkeT0iLjNlbSIgc3R5bGU9ImZvbnQtc2l6ZToyMHB4O3RleHQtYW5jaG9yOm1pZGRsZTtmb250LWZhbWlseTphcmlhbCI+QXZhPC90ZXh0Pjwvc3ZnPg=='}
                     alt={channel.author}
                 />
             </div>
