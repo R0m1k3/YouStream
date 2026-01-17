@@ -149,7 +149,7 @@ class InvidiousService {
      */
     async getVideoDetails(videoId) {
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/videos/${videoId}?local=true&hl=fr&gl=FR`);
+            const response = await fetch(`${this.baseUrl}/api/v1/videos/${videoId}?local=true`);
             if (!response.ok) throw new Error('Erreur lors de la récupération des détails de la vidéo');
             return await response.json();
         } catch (error) {
@@ -163,7 +163,7 @@ class InvidiousService {
      */
     async getChannelInfo(channelId) {
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/channels/${channelId}?hl=fr&gl=FR`);
+            const response = await fetch(`${this.baseUrl}/api/v1/channels/${channelId}`);
             if (!response.ok) throw new Error('Erreur lors de la récupération des infos de la chaîne');
             return await response.json();
         } catch (error) {

@@ -11,6 +11,11 @@ local: true
 hmac_key: "0123456789abcdef"
 invidious_companion_key: "0123456789abcdef"
 cache_annotations: false
+default_user_preferences:
+  locale: "fr"
+  region: "FR"
+  captions: ["fr", "en"]
+  quality: "dash" # Prefer DASH for better quality selection control
 
 # Legacy signature server disabled
 signature_server_enabled: false
