@@ -54,11 +54,16 @@ class InvidiousService {
             const data = await response.json();
 
             // Support du format direct Array ou Object { videos: [...] }
+            let videoList = [];
             if (Array.isArray(data)) {
-                return data;
+                videoList = data;
+            } else if (data && Array.isArray(data.videos)) {
+                videoList = data.videos;
             }
-            if (data && Array.isArray(data.videos)) {
-                return data.videos;
+
+            if (videoList.length > 0) {
+                // Filtrer les vidéos invalides (sans ID ou titre) pour éviter les crashs UI
+                return videoList.filter(v => v.videoId && v.title);
             }
 
             console.warn(`Format inattendu pour les vidéos de la chaîne ${channelId}:`, data);

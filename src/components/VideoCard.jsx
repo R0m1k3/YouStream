@@ -11,7 +11,12 @@ const VideoCard = ({ video, onMarkAsRead, onPlay }) => {
     return (
         <div className="video-card">
             <div className="thumbnail-container" onClick={() => onPlay(video)}>
-                <img src={video.videoThumbnails[0]?.url} alt={video.title} className="thumbnail" />
+                <img
+                    src={video.videoThumbnails?.[0]?.url || 'https://via.placeholder.com/320x180?text=No+Thumbnail'}
+                    alt={video.title}
+                    className="thumbnail"
+                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/320x180?text=Error'; }}
+                />
                 <span className="duration">{Math.floor(video.lengthSeconds / 60)}:{(video.lengthSeconds % 60).toString().padStart(2, '0')}</span>
             </div>
 
