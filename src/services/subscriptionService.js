@@ -222,21 +222,73 @@ class SubscriptionService {
         }
     }
 
+    /**
+     * Récupère la liste des chaînes abonnées (LocalStorage + API Sync)
+     */
+    async fetchSubscriptions() {
+        let localSubs = this.getSubscriptions();
+        try {
+            const res = await fetch('/api/backend/subscriptions');
+            if (res.ok) {
+                const remoteSubs = await res.json();
+
+                // CAS MIGRATION : Le backend est vide (nouveau) mais le client a des données
+                if (remoteSubs.length === 0 && localSubs.length > 0) {
+                    console.log('Migration des données locales vers le nouveau backend...');
+                    // On envoie tout au backend
+                    await this.syncWithBackend(localSubs);
+                    // On retourne les données locales (le backend traitera les thumbnails en arrière-plan)
+                    return localSubs;
+                }
+
+                // CAS NORMAL : Le backend a des données (ou les deux sont vides)
+                // Le backend est la source de vérité
+                localStorage.setItem(STORAGE_KEYS.SUBSCRIPTIONS, JSON.stringify(remoteSubs));
+                return remoteSubs;
+            }
+        } catch (e) {
+            console.warn('Backend unavailable, using local storage:', e);
+        }
+        return localSubs;
+    }
+
+    async syncWithBackend(newSubs) {
+        try {
+            await fetch('/api/backend/subscriptions/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subscriptions: newSubs })
+            });
+        } catch (e) {
+            console.error('Failed to sync with backend:', e);
+        }
+    }
+
     _mergeAndSave(newSubs) {
         if (newSubs.length > 0) {
             const currentSubs = this.getSubscriptions();
             const mergedSubs = [...currentSubs];
+            const addedSubs = [];
+
             newSubs.forEach(newSub => {
                 if (!mergedSubs.find(s => s.authorId === newSub.authorId)) {
-                    mergedSubs.push({
+                    const subToAdd = {
                         author: newSub.author,
                         authorId: newSub.authorId,
                         authorUrl: newSub.authorUrl || `/channel/${newSub.authorId}`,
                         authorThumbnails: newSub.authorThumbnails || []
-                    });
+                    };
+                    mergedSubs.push(subToAdd);
+                    addedSubs.push(subToAdd);
                 }
             });
             localStorage.setItem(STORAGE_KEYS.SUBSCRIPTIONS, JSON.stringify(mergedSubs));
+
+            // Sync with Backend in background
+            if (addedSubs.length > 0) {
+                this.syncWithBackend(addedSubs);
+            }
+
             return mergedSubs;
         }
         return this.getSubscriptions();

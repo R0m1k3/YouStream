@@ -149,7 +149,7 @@ class InvidiousService {
      */
     async getVideoDetails(videoId) {
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/videos/${videoId}?local=true`);
+            const response = await fetch(`${this.baseUrl}/api/v1/videos/${videoId}?local=true&hl=fr&gl=FR`);
             if (!response.ok) throw new Error('Erreur lors de la récupération des détails de la vidéo');
             return await response.json();
         } catch (error) {
@@ -163,7 +163,7 @@ class InvidiousService {
      */
     async getChannelInfo(channelId) {
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/channels/${channelId}`);
+            const response = await fetch(`${this.baseUrl}/api/v1/channels/${channelId}?hl=fr&gl=FR`);
             if (!response.ok) throw new Error('Erreur lors de la récupération des infos de la chaîne');
             return await response.json();
         } catch (error) {
@@ -184,8 +184,8 @@ class InvidiousService {
 
         if (formats.length === 0) return null;
 
-        // Ordre de préférence : 1080p (itag 137/27) > 720p (itag 22/136) > 480p (itag 135) > 360p (itag 18/134)
-        const priorityItags = ['137', '299', '22', '136', '298', '135', '18', '134'];
+        // Prio: 22 (720p), 18 (360p) for Video+Audio. DASH (137..) is often video-only.
+        const priorityItags = ['22', '18', '43', '137'];
 
         for (const itag of priorityItags) {
             const format = formats.find(s => s.itag === itag);

@@ -13,6 +13,26 @@ services:
     depends_on:
       invidious:
         condition: service_healthy
+      youstream-api:
+        condition: service_started
+
+  youstream-api:
+    build: ./backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - POSTGRES_USER=kemal
+      - POSTGRES_PASSWORD=kemal
+      - POSTGRES_DB=invidious
+      - POSTGRES_HOST=postgres
+      - INVIDIOUS_URL=http://invidious:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      invidious:
+        condition: service_healthy
 
   invidious:
     image: quay.io/invidious/invidious:latest

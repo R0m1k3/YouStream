@@ -39,8 +39,11 @@ function App() {
         }
     }, [activeTab, subscriptions, feedVideos]);
 
-    // Détection automatique d'import via Bookmarklet (URL sync=...)
+    // Effect : Charger les abonnements depuis le backend (sync) et URL params
     useEffect(() => {
+        // Sync avec le backend
+        subscriptionService.fetchSubscriptions().then(setSubscriptions);
+
         const urlParams = new URLSearchParams(window.location.search);
         const syncData = urlParams.get('sync');
         if (syncData) {
