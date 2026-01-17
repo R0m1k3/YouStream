@@ -43,6 +43,30 @@ class InvidiousService {
     }
 
     /**
+     * Récupérer les tendances (Populaire / Découverte)
+     */
+    async getTrending(type = 'Music') {
+        try {
+            // region est géré par la config serveur Invidious (fr-FR)
+            const response = await fetch(`${this.baseUrl}/api/v1/trending`);
+            if (!response.ok) throw new Error('Erreur lors de la récupération des tendances');
+            const results = await response.json();
+
+            // Normalisation
+            return results.map(item => {
+                if (item.videoThumbnails) {
+                    item.videoThumbnails = item.videoThumbnails.map(t => ({ ...t, url: this.normalizeUrl(t.url) }));
+                }
+                return item;
+            });
+        } catch (error) {
+            console.error('InvidiousService.getTrending error:', error);
+            // Fallback recherche si trending fail
+            return this.search('trending');
+        }
+    }
+
+    /**
      * Récupérer les vidéos d'une chaîne
      */
     async getChannelVideos(channelId) {

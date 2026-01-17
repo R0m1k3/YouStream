@@ -4,7 +4,8 @@
 
 const STORAGE_KEYS = {
     SUBSCRIPTIONS: 'youstream_subs',
-    WATCHED_VIDEOS: 'youstream_watched'
+    WATCHED_VIDEOS: 'youstream_watched',
+    FAVORITES: 'youstream_favorites'
 };
 
 class SubscriptionService {
@@ -83,6 +84,53 @@ class SubscriptionService {
      */
     isWatched(videoId) {
         return this.getWatchedVideos().includes(videoId);
+    }
+
+    /**
+     * Récupère la liste des vidéos favorites
+     */
+    getFavorites() {
+        const favs = localStorage.getItem(STORAGE_KEYS.FAVORITES);
+        return favs ? JSON.parse(favs) : [];
+    }
+
+    /**
+     * Vérifie si une vidéo est en favoris
+     */
+    isFavorite(videoId) {
+        const favs = this.getFavorites();
+        return favs.some(v => v.videoId === videoId);
+    }
+
+    /**
+     * Ajoute une vidéo aux favoris
+     */
+    addFavorite(video) {
+        const favs = this.getFavorites();
+        if (!favs.find(v => v.videoId === video.videoId)) {
+            // On ne garde que les infos essentielles
+            favs.push({
+                videoId: video.videoId,
+                title: video.title,
+                author: video.author,
+                authorId: video.authorId,
+                viewCount: video.viewCount,
+                publishedText: video.publishedText,
+                videoThumbnails: video.videoThumbnails
+            });
+            localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(favs));
+        }
+        return favs;
+    }
+
+    /**
+     * Supprime une vidéo des favoris
+     */
+    removeFavorite(videoId) {
+        let favs = this.getFavorites();
+        favs = favs.filter(v => v.videoId !== videoId);
+        localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(favs));
+        return favs;
     }
 
     /**

@@ -23,6 +23,7 @@ function App() {
     const [youtubeUser, setYoutubeUser] = useState(youtubeAuthService.getUserInfo());
     const [youtubeLoading, setYoutubeLoading] = useState(false);
     const [channelFilter, setChannelFilter] = useState('');
+    const [favoriteIds, setFavoriteIds] = useState(subscriptionService.getFavorites().map(f => f.videoId));
 
     const YOUTUBE_CLIENT_ID = localStorage.getItem('youstream_yt_client_id') || '';
 
@@ -36,8 +37,12 @@ function App() {
             } else {
                 loadTrendingFallback();
             }
+        } else if (activeTab === 'discovery') {
+            loadTrendingFallback();
+        } else if (activeTab === 'favs') {
+            setVideos(subscriptionService.getFavorites());
         }
-    }, [activeTab, subscriptions, feedVideos]);
+    }, [activeTab, subscriptions, feedVideos, favoriteIds]);
 
     // Effect : Charger les abonnements depuis le backend (sync) et URL params
     useEffect(() => {
@@ -101,7 +106,7 @@ function App() {
     const loadTrendingFallback = async () => {
         setLoading(true);
         try {
-            const data = await invidiousService.search('trending', 'video');
+            const data = await invidiousService.getTrending();
             setVideos(data.filter(v => !subscriptionService.isWatched(v.videoId)));
         } catch (error) {
             console.error('Erreur loading trending:', error);
@@ -138,6 +143,16 @@ function App() {
     const handleUnsubscribe = (channelId) => {
         const newSubs = subscriptionService.removeSubscription(channelId);
         setSubscriptions([...newSubs]);
+    };
+
+    const handleToggleFavorite = (video) => {
+        if (subscriptionService.isFavorite(video.videoId)) {
+            subscriptionService.removeFavorite(video.videoId);
+            setFavoriteIds(prev => prev.filter(id => id !== video.videoId));
+        } else {
+            subscriptionService.addFavorite(video);
+            setFavoriteIds(prev => [...prev, video.videoId]);
+        }
     };
 
     const handleChannelClick = async (channel) => {
@@ -310,6 +325,13 @@ function App() {
                                 Nouveautés
                             </li>
                             <li
+                                className={activeTab === 'discovery' ? 'active' : ''}
+                                onClick={() => setActiveTab('discovery')}
+                            >
+                                <svg className="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 10.9c-.61 0-1.1.49-1.1 1.1s.49 1.1 1.1 1.1c.61 0 1.1-.49 1.1-1.1s-.49-1.1-1.1-1.1zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm2.19 12.19L6 18l3.81-8.19L18 6l-3.81 8.19z" /></svg>
+                                Découverte
+                            </li>
+                            <li
                                 className={activeTab === 'subs' ? 'active' : ''}
                                 onClick={() => setActiveTab('subs')}
                             >
@@ -368,6 +390,12 @@ function App() {
                                     <button className="sub-btn-header" onClick={() => handleSubscribe(viewingChannel)}>S'abonner</button>
                                 )}
                             </div>
+                        ) : activeTab === 'settings' ? (
+                            <h2>Paramètres & Compte</h2>
+                        ) : activeTab === 'discovery' ? (
+                            <h2>Découverte & Tendances</h2>
+                        ) : activeTab === 'favs' ? (
+                            <h2>Mes Favoris</h2>
                         ) : (
                             <h2>Dernières nouveautés</h2>
                         )}
@@ -402,6 +430,7 @@ function App() {
                                     <li>Glissez le bouton ci-dessus dans votre barre de favoris (Ctrl+Shift+B pour l'afficher).</li>
                                     <li>Allez sur votre page <a href="https://www.youtube.com/feed/channels" target="_blank" rel="noreferrer">Abonnements YouTube</a>.</li>
                                     <li>Cliquez sur le favori <strong>"YouStream Sync"</strong>.</li>
+                                    <li><strong>Note :</strong> Si vous ajoutez de nouveaux abonnements sur YouTube, répétez cette opération pour les ajouter ici.</li>
                                 </ol>
                             </div>
 
@@ -546,6 +575,8 @@ function App() {
                                                 onPlay={handlePlay}
                                                 onChannelClick={handleChannelClick}
                                                 isWatched={subscriptionService.isWatched(video.videoId)}
+                                                onToggleFavorite={handleToggleFavorite}
+                                                isFavorite={favoriteIds.includes(video.videoId)}
                                             />
                                         ))
                                     ) : (

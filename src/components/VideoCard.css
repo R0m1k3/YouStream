@@ -95,3 +95,37 @@
 .mark-read-btn:hover {
     background-color: #444;
 }
+
+.card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    align-items: center;
+}
+
+.fav-btn {
+    background: transparent;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.fav-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ff4444;
+}
+
+.fav-btn.active {
+    color: #ff4444;
+}
+
+.fav-btn svg {
+    width: 24px;
+    height: 24px;
+}
