@@ -284,11 +284,6 @@ function App() {
                                 <svg className="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" /></svg>
                                 Paramètres
                             </button>
-                            <label className="import-btn">
-                                <svg className="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" /></svg>
-                                Importer
-                                <input type="file" accept=".xml,.opml,.csv,.html,.txt" onChange={handleImportSubscriptions} hidden />
-                            </label>
                         </div>
                     </nav>
                 </aside>
@@ -351,55 +346,23 @@ function App() {
                         <div className="settings-view">
                             <h2>Paramètres & Compte</h2>
 
-                            <div className="settings-section youtube-section">
-                                <h3>🔴 Connexion YouTube</h3>
-                                <p>Connectez-vous pour importer automatiquement vos abonnements.</p>
+                            <div className="settings-section magic-section">
+                                <h3>🚀 Synchroniser vos abonnements YouTube</h3>
+                                <p>Glissez ce bouton dans votre barre de favoris pour synchroniser vos abonnements en 1 clic.</p>
 
-                                <GoogleLoginButton
-                                    isConnected={isYoutubeConnected}
-                                    userInfo={youtubeUser}
-                                    onLogin={handleYoutubeLogin}
-                                    onLogout={handleYoutubeLogout}
-                                    isLoading={youtubeLoading}
-                                />
+                                <a
+                                    className="bookmarklet-btn"
+                                    href={`javascript:(function(){function g(){let d=window.ytInitialData,i=[];try{let c=d.contents.twoColumnBrowseResultsRenderer.tabs[0].tabRenderer.content.sectionListRenderer.contents[0].itemSectionRenderer.contents[0].gridRenderer.items;i=c.map(x=>({author:x.gridChannelRenderer.title.simpleText,authorId:x.gridChannelRenderer.channelId}))}catch(e){i=Array.from(document.querySelectorAll('ytd-channel-renderer,ytd-grid-channel-renderer')).map(e=>{let a=e.querySelector('a#main-link,a#channel-info,a');return{author:e.querySelector('#text,#channel-title,#title').innerText.trim(),authorId:a.href.split('/').pop()}})}return i.filter(x=>x.authorId)}const s=btoa(unescape(encodeURIComponent(JSON.stringify(g()))));window.location.href='http://localhost:3000/?sync='+s;})();`}
+                                    onClick={(e) => e.preventDefault()}
+                                >
+                                    🚀 YouStream Sync
+                                </a>
 
-                                {!isYoutubeConnected && (
-                                    <div className="client-id-config" style={{ marginTop: '20px' }}>
-                                        <p style={{ fontSize: '12px', opacity: 0.7 }}>
-                                            Configurez d'abord votre Client ID Google Cloud :
-                                        </p>
-                                        <input
-                                            type="text"
-                                            placeholder="Votre Client ID OAuth 2.0"
-                                            defaultValue={YOUTUBE_CLIENT_ID}
-                                            className="client-id-input"
-                                            onBlur={(e) => handleSaveClientId(e.target.value)}
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px',
-                                                marginTop: '8px',
-                                                borderRadius: '6px',
-                                                border: '1px solid rgba(255,255,255,0.2)',
-                                                background: 'rgba(255,255,255,0.05)',
-                                                color: 'inherit'
-                                            }}
-                                        />
-                                        <a
-                                            href="https://console.cloud.google.com/apis/credentials"
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            style={{ fontSize: '12px', color: '#4a9eff' }}
-                                        >
-                                            Créer un Client ID sur Google Cloud Console
-                                        </a>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="settings-section">
-                                <h3>Gestion de l'instance Invidious</h3>
-                                <p>Instance actuelle : <code>Locale (Docker)</code></p>
-                                <button className="secondary-btn">Changer d'instance</button>
+                                <ol className="help-list" style={{ marginTop: '20px' }}>
+                                    <li>Glissez le bouton ci-dessus dans votre barre de favoris (Ctrl+Shift+B pour l'afficher).</li>
+                                    <li>Allez sur votre page <a href="https://www.youtube.com/feed/channels" target="_blank" rel="noreferrer">Abonnements YouTube</a>.</li>
+                                    <li>Cliquez sur le favori <strong>"YouStream Sync"</strong>.</li>
+                                </ol>
                             </div>
 
                             <div className="settings-section">
@@ -421,42 +384,8 @@ function App() {
                                         ))}
                                     </div>
                                 ) : (
-                                    <p style={{ opacity: 0.6 }}>Aucun abonnement. Utilisez la recherche pour trouver des chaînes.</p>
+                                    <p style={{ opacity: 0.6 }}>Aucun abonnement. Utilisez le Magic Button ou la recherche.</p>
                                 )}
-                            </div>
-
-                            <div className="settings-section magic-section">
-                                <h3>✨ Magic Button (Synchronisation en 1 clic)</h3>
-                                <p>Le moyen le plus simple : glissez ce bouton dans votre barre de favoris.</p>
-
-                                <a
-                                    className="bookmarklet-btn"
-                                    href={`javascript:(function(){function g(){let d=window.ytInitialData,i=[];try{let c=d.contents.twoColumnBrowseResultsRenderer.tabs[0].tabRenderer.content.sectionListRenderer.contents[0].itemSectionRenderer.contents[0].gridRenderer.items;i=c.map(x=>({author:x.gridChannelRenderer.title.simpleText,authorId:x.gridChannelRenderer.channelId}))}catch(e){i=Array.from(document.querySelectorAll('ytd-channel-renderer,ytd-grid-channel-renderer')).map(e=>{let a=e.querySelector('a#main-link,a#channel-info,a');return{author:e.querySelector('#text,#channel-title,#title').innerText.trim(),authorId:a.href.split('/').pop()}})}return i.filter(x=>x.authorId)}const s=btoa(unescape(encodeURIComponent(JSON.stringify(g()))));window.location.href='http://localhost:3000/?sync='+s;})();`}
-                                    onClick={(e) => e.preventDefault()}
-                                >
-                                    🚀 YouStream Sync
-                                </a>
-
-                                <ol className="help-list" style={{ marginTop: '20px' }}>
-                                    <li>Glissez le bouton ci-dessus dans votre barre de favoris (Ctrl+Shift+B pour l'afficher).</li>
-                                    <li>Allez sur votre page <a href="https://www.youtube.com/feed/channels" target="_blank" rel="noreferrer">Abonnements YouTube</a>.</li>
-                                    <li>Cliquez sur le favori <strong>"YouStream Sync"</strong>.</li>
-                                </ol>
-                            </div>
-
-                            <div className="settings-section">
-                                <h3>⚙️ Import Manuel (Script)</h3>
-                                <p>Si le bouton ne fonctionne pas, copiez ce script dans la console (F12) :</p>
-                                <div className="code-block">
-                                    <code>{`const s=JSON.stringify(Array.from(document.querySelectorAll('ytd-channel-renderer, ytd-grid-channel-renderer')).map(e=>{const a=e.querySelector('a#main-link, a#channel-info, a');return{author:e.querySelector('#text, #channel-title, #title').innerText.trim(),authorId:a.href.split('/').pop()}}).filter(c=>c.authorId));console.log(s);copy(s);alert('Copié !');`}</code>
-                                </div>
-                                <textarea
-                                    placeholder="Collez le résultat ici..."
-                                    className="cookie-input"
-                                    value={cookie}
-                                    onChange={(e) => setCookie(e.target.value)}
-                                ></textarea>
-                                <button className="accent-btn" onClick={() => handleJSONSync(cookie)}>Importer manuellement</button>
                             </div>
 
                             <div className="settings-section">
