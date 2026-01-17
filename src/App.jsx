@@ -533,20 +533,22 @@ function App() {
                                 </div>
                             )}
 
-                            <div className="video-grid">
-                                {videos.length > 0 ? (
-                                    videos.map(video => (
-                                        <VideoCard
-                                            key={video.videoId}
-                                            video={video}
-                                            onMarkAsRead={handleMarkAsRead}
-                                            onPlay={handlePlay}
-                                        />
-                                    ))
-                                ) : (
-                                    <p className="placeholder-text">Aucunes vidéos à afficher.</p>
-                                )}
-                            </div>
+                            {activeTab !== 'subs' && (
+                                <div className="video-grid">
+                                    {videos.length > 0 ? (
+                                        videos.map(video => (
+                                            <VideoCard
+                                                key={video.videoId}
+                                                video={video}
+                                                onMarkAsRead={handleMarkAsRead}
+                                                onPlay={handlePlay}
+                                            />
+                                        ))
+                                    ) : (
+                                        <p className="placeholder-text">Aucunes vidéos à afficher.</p>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     )}
                 </section>
