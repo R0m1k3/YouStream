@@ -165,6 +165,27 @@ class InvidiousService {
             throw error;
         }
     }
+    /**
+     * Récupère la meilleure URL de flux vidéo (MP4 720p ou premier disponible)
+     */
+    getBestStreamUrl(videoDetails) {
+        if (!videoDetails || !videoDetails.formatStreams) return null;
+
+        // Chercher du MP4 720p (itag 22)
+        const mp4_720 = videoDetails.formatStreams.find(s => s.itag === '22');
+        if (mp4_720) return this.normalizeUrl(mp4_720.url);
+
+        // Sinon MP4 360p (itag 18)
+        const mp4_360 = videoDetails.formatStreams.find(s => s.itag === '18');
+        if (mp4_360) return this.normalizeUrl(mp4_360.url);
+
+        // Sinon le premier flux qui a un container mp4
+        const anyMp4 = videoDetails.formatStreams.find(s => s.container === 'mp4');
+        if (anyMp4) return this.normalizeUrl(anyMp4.url);
+
+        // Sinon le tout premier flux
+        return videoDetails.formatStreams.length > 0 ? this.normalizeUrl(videoDetails.formatStreams[0].url) : null;
+    }
 }
 
 export default new InvidiousService();

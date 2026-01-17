@@ -230,8 +230,25 @@ function App() {
         setVideos(prev => prev.filter(v => v.videoId !== videoId));
     };
 
-    const handlePlay = (video) => {
-        setCurrentVideo(video);
+    const handlePlay = async (video) => {
+        setLoading(true);
+        try {
+            // On récupère les détails complets pour avoir l'URL du flux
+            const details = await invidiousService.getVideoDetails(video.videoId);
+            const streamUrl = invidiousService.getBestStreamUrl(details);
+
+            if (streamUrl) {
+                // On injecte l'URL redirigée (locale) dans l'objet video pour le lecteur
+                setCurrentVideo({ ...video, streamUrl });
+            } else {
+                alert("Aucun flux vidéo compatible trouvé.");
+            }
+        } catch (error) {
+            console.error('Erreur lecture vidéo:', error);
+            alert("Impossible de charger la vidéo.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -308,7 +325,7 @@ function App() {
                                 <video
                                     controls
                                     autoPlay
-                                    src={`/api/invidious/latest_version?id=${currentVideo.videoId}&itag=22&local=true`}
+                                    src={currentVideo.streamUrl}
                                     className="main-video-player"
                                 />
                                 <div className="player-info">
