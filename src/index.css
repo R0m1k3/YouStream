@@ -160,6 +160,13 @@ h1 {
   padding-left: 12px;
 }
 
+.sub-list ul {
+  max-height: calc(100vh - 350px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color) transparent;
+}
+
 .sub-list ul li {
   font-size: 0.9rem;
   padding: 8px 12px;

@@ -52,11 +52,17 @@ class InvidiousService {
             if (!response.ok) throw new Error(`Erreur HTTP ${response.status} lors de la récupération des vidéos`);
 
             const data = await response.json();
-            if (!Array.isArray(data)) {
-                console.warn(`Format inattendu pour les vidéos de la chaîne ${channelId}:`, data);
-                return [];
+
+            // Support du format direct Array ou Object { videos: [...] }
+            if (Array.isArray(data)) {
+                return data;
             }
-            return data;
+            if (data && Array.isArray(data.videos)) {
+                return data.videos;
+            }
+
+            console.warn(`Format inattendu pour les vidéos de la chaîne ${channelId}:`, data);
+            return [];
         } catch (error) {
             console.error(`InvidiousService.getChannelVideos error pour ${channelId}:`, error);
             return []; // Sécurité : toujours retourner un tableau
