@@ -308,7 +308,7 @@ function App() {
                                 <video
                                     controls
                                     autoPlay
-                                    src={`https://yewtu.be/latest_version?id=${currentVideo.videoId}&itag=22`}
+                                    src={`/api/invidious/latest_version?id=${currentVideo.videoId}&itag=22&local=true`}
                                     className="main-video-player"
                                 />
                                 <div className="player-info">
@@ -393,7 +393,7 @@ function App() {
 
                             <div className="settings-section">
                                 <h3>Gestion de l'instance Invidious</h3>
-                                <p>Instance actuelle : <code>https://yewtu.be</code></p>
+                                <p>Instance actuelle : <code>Locale (Docker)</code></p>
                                 <button className="secondary-btn">Changer d'instance</button>
                             </div>
 
