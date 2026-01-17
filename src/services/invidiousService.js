@@ -22,7 +22,7 @@ class InvidiousService {
      */
     async search(query, type = 'video') {
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/search?q=${encodeURIComponent(query)}&type=${type}`);
+            const response = await fetch(`${this.baseUrl}/api/v1/search?q=${encodeURIComponent(query)}&type=${type}&hl=fr`);
             if (!response.ok) throw new Error('Erreur lors de la recherche');
             const results = await response.json();
 
@@ -47,8 +47,8 @@ class InvidiousService {
      */
     async getTrending(type = 'Music') {
         try {
-            // region est géré par la config serveur Invidious (fr-FR)
-            const response = await fetch(`${this.baseUrl}/api/v1/trending`);
+            // region est géré par la config serveur Invidious (fr-FR), mais on force hl=fr
+            const response = await fetch(`${this.baseUrl}/api/v1/trending?type=${type}&hl=fr`);
             if (!response.ok) throw new Error('Erreur lors de la récupération des tendances');
             const results = await response.json();
 
@@ -85,7 +85,9 @@ class InvidiousService {
                 }
             }
 
-            const response = await fetch(`${this.baseUrl}/api/v1/channels/${channelId}/videos`);
+
+
+            const response = await fetch(`${this.baseUrl}/api/v1/channels/${channelId}/videos?hl=fr`);
             if (!response.ok) throw new Error(`Erreur HTTP ${response.status} lors de la récupération des vidéos`);
 
             const data = await response.json();
@@ -118,7 +120,7 @@ class InvidiousService {
                 });
             }
 
-            console.warn(`Format inattendu pour les vidéos de la chaîne ${channelId}:`, data);
+            console.warn(`Format inattendu pour les vidéos de la chaîne ${channelId}:`, JSON.stringify(data));
             return [];
         } catch (error) {
             console.error(`InvidiousService.getChannelVideos error pour ${channelId}:`, error);
@@ -173,7 +175,7 @@ class InvidiousService {
      */
     async getVideoDetails(videoId) {
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/videos/${videoId}?local=true`);
+            const response = await fetch(`${this.baseUrl}/api/v1/videos/${videoId}?local=true&hl=fr`);
             if (!response.ok) throw new Error('Erreur lors de la récupération des détails de la vidéo');
             return await response.json();
         } catch (error) {
@@ -187,7 +189,7 @@ class InvidiousService {
      */
     async getChannelInfo(channelId) {
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/channels/${channelId}`);
+            const response = await fetch(`${this.baseUrl}/api/v1/channels/${channelId}?hl=fr`);
             if (!response.ok) throw new Error('Erreur lors de la récupération des infos de la chaîne');
             return await response.json();
         } catch (error) {
