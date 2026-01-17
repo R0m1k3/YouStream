@@ -6,5 +6,7 @@ db:
   port: 5432
 
 check_tables: true
-signature_server_enabled: false
+check_tables: true
+signature_server_enabled: true
+signature_server_address: inv-sig-helper:12972
 hmac_key: "I-am-a-very-secret-key-change-me-in-production"
