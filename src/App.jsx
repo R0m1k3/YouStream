@@ -70,8 +70,16 @@ function App() {
                 // Pour limiter les appels, on prend les 3 dernières de chaque chaîne pour le MVP
                 let allVideos = [];
                 for (const sub of subs) {
-                    const channelVideos = await invidiousService.getChannelVideos(sub.authorId);
-                    allVideos = [...allVideos, ...channelVideos];
+                    try {
+                        const channelVideos = await invidiousService.getChannelVideos(sub.authorId);
+                        if (Array.isArray(channelVideos)) {
+                            allVideos = [...allVideos, ...channelVideos];
+                        } else {
+                            console.warn(`Données invalides reçues pour la chaîne ${sub.authorId}`);
+                        }
+                    } catch (e) {
+                        console.error(`Erreur pour la chaîne ${sub.author}:`, e);
+                    }
                 }
                 // Trier par date (approximation via publishedText pour le moment ou metadata)
                 // Et filtrer les déjà lues

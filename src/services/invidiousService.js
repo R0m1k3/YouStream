@@ -44,16 +44,22 @@ class InvidiousService {
                     channelId = realId;
                 } else {
                     console.warn(`Impossible de résoudre le handle ${channelId}`);
-                    return []; // Ou throw, mais return [] évite de casser toute la page
+                    return []; // Retourne un tableau vide au lieu de undefined/null
                 }
             }
 
             const response = await fetch(`${this.baseUrl}/api/v1/channels/${channelId}/videos`);
-            if (!response.ok) throw new Error('Erreur lors de la récupération des vidéos de la chaîne');
-            return await response.json();
+            if (!response.ok) throw new Error(`Erreur HTTP ${response.status} lors de la récupération des vidéos`);
+
+            const data = await response.json();
+            if (!Array.isArray(data)) {
+                console.warn(`Format inattendu pour les vidéos de la chaîne ${channelId}:`, data);
+                return [];
+            }
+            return data;
         } catch (error) {
-            console.error('InvidiousService.getChannelVideos error:', error);
-            throw error;
+            console.error(`InvidiousService.getChannelVideos error pour ${channelId}:`, error);
+            return []; // Sécurité : toujours retourner un tableau
         }
     }
 
