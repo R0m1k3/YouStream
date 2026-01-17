@@ -27,6 +27,8 @@ services:
       #  - INVIDIOUS_DB_HOST=postgres
       #  - INVIDIOUS_DB_PORT=5432
       #  - INVIDIOUS_SIGNATURE_SERVER_ENABLED=0
+    dns:
+      - 8.8.8.8
     depends_on:
       postgres:
         condition: service_healthy
@@ -38,6 +40,8 @@ services:
     restart: always
     environment:
       - RUST_LOG=info
+    dns:
+      - 8.8.8.8
 
   postgres:
     image: postgres:14
