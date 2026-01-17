@@ -66,24 +66,33 @@ function App() {
                 const data = await invidiousService.search('trending', 'video');
                 setVideos(data.filter(v => !subscriptionService.isWatched(v.videoId)));
             } else {
-                // Récupérer les vidéos de chaque chaîne et fusionner/trier
-                // Pour limiter les appels, on prend les 3 dernières de chaque chaîne pour le MVP
+                // Récupérer les vidéos de chaque chaîne
                 let allVideos = [];
+                const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
+                const now = Date.now();
+
                 for (const sub of subs) {
                     try {
                         const channelVideos = await invidiousService.getChannelVideos(sub.authorId);
                         if (Array.isArray(channelVideos)) {
-                            allVideos = [...allVideos, ...channelVideos];
-                        } else {
-                            console.warn(`Données invalides reçues pour la chaîne ${sub.authorId}`);
+                            // Filtrer: Moins d'une semaine
+                            const recent = channelVideos.filter(v => {
+                                if (!v.published) return false;
+                                const pubDate = new Date(v.published).getTime();
+                                return (now - pubDate) < ONE_WEEK;
+                            });
+                            allVideos = [...allVideos, ...recent];
                         }
                     } catch (e) {
                         console.error(`Erreur pour la chaîne ${sub.author}:`, e);
                     }
                 }
-                // Trier par date (approximation via publishedText pour le moment ou metadata)
-                // Et filtrer les déjà lues
-                setVideos(allVideos.filter(v => !subscriptionService.isWatched(v.videoId)));
+
+                // Trier par date (plus récent en premier)
+                allVideos.sort((a, b) => new Date(b.published) - new Date(a.published));
+
+                // Limiter à 50 vidéos max
+                setVideos(allVideos.slice(0, 50));
             }
         } catch (error) {
             console.error('Erreur chargement vidéos:', error);

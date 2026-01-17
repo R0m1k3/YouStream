@@ -114,6 +114,10 @@ class InvidiousService {
             if (urlObj.pathname.startsWith('/ggpht/')) {
                 return urlObj.pathname; // /ggpht/... -> géré par Nginx
             }
+            if (urlObj.pathname.startsWith('/videoplayback')) {
+                // On garde tout le path + les query params
+                return urlObj.pathname + urlObj.search;
+            }
         } catch (e) {
             // URL invalide, on laisse telle quelle
         }
