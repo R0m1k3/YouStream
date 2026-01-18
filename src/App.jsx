@@ -547,7 +547,17 @@ function App() {
                                         .filter(sub => channelFilter === '' || sub.author.toLowerCase().includes(channelFilter.toLowerCase()))
                                         .map(sub => (
                                             <div key={sub.authorId} className="channel-card-mini" onClick={() => handleChannelClick(sub)}>
-                                                <div className="channel-avatar">{sub.author?.charAt(0).toUpperCase() || '?'}</div>
+                                                {sub.authorThumbnails && sub.authorThumbnails.length > 0 ? (
+                                                    <img
+                                                        src={sub.authorThumbnails[0].url}
+                                                        alt={sub.author}
+                                                        className="channel-avatar-img"
+                                                        onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                                                    />
+                                                ) : null}
+                                                <div className="channel-avatar" style={{ display: sub.authorThumbnails && sub.authorThumbnails.length > 0 ? 'none' : 'flex' }}>
+                                                    {sub.author?.charAt(0).toUpperCase() || '?'}
+                                                </div>
                                                 <span className="channel-name">{sub.author}</span>
                                             </div>
                                         ))
