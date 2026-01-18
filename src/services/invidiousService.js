@@ -12,9 +12,36 @@ const INSTANCES = [
 
 class InvidiousService {
     constructor() {
-        // En développement (localhost), on utilise le proxy Vite (/api/invidious)
-        // En production, on devra aussi avoir un proxy Nginx ou utiliser une instance avec CORS autorisé
+        console.log('InvidiousService initialized - v1.2 (Concurrency Limiter)');
         this.baseUrl = '/api/invidious';
+
+        // Concurrency Limiter Configuration
+        this.maxConcurrent = 1;
+        this.currentRequests = 0;
+        this.queue = [];
+    }
+
+    /**
+     * Exécute une requête fetch avec limitation de concurrence
+     */
+    async fetchWithLimit(url, options) {
+        // Si on a atteint la limite, on attend
+        if (this.currentRequests >= this.maxConcurrent) {
+            await new Promise(resolve => this.queue.push(resolve));
+        }
+
+        this.currentRequests++;
+        try {
+            const response = await fetch(url, options);
+            return response;
+        } finally {
+            this.currentRequests--;
+            // Si des requêtes sont en attente, on libère la prochaine
+            if (this.queue.length > 0) {
+                const next = this.queue.shift();
+                next();
+            }
+        }
     }
 
     /**
@@ -22,7 +49,7 @@ class InvidiousService {
      */
     async search(query, type = 'video') {
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/search?q=${encodeURIComponent(query)}&type=${type}`);
+            const response = await this.fetchWithLimit(`${this.baseUrl}/api/v1/search?q=${encodeURIComponent(query)}&type=${type}`);
             if (!response.ok) throw new Error('Erreur lors de la recherche');
             const results = await response.json();
 
@@ -47,7 +74,7 @@ class InvidiousService {
      */
     async getTrending(type = 'Music') {
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/trending?type=${type}`);
+            const response = await this.fetchWithLimit(`${this.baseUrl}/api/v1/trending?type=${type}`);
             if (!response.ok) throw new Error('Erreur lors de la récupération des tendances');
             const results = await response.json();
 
@@ -74,17 +101,14 @@ class InvidiousService {
 
             // Si c'est un handle (@user) ou un nom d'utilisateur (pas un ID UC...), on résout
             if (channelId.startsWith('@') || !channelId.startsWith('UC')) {
-                console.log(`Résolution du handle/nom ${channelId}...`);
+                // console.log(`Résolution du handle/nom ${channelId}...`); // Spam log
                 const realId = await this.resolveHandle(channelId);
                 if (realId) {
                     channelId = realId;
-                } else {
-                    console.warn(`Impossible de résoudre le handle ${channelId}`);
-                    // On tente quand même avec l'ID d'origine au cas où
                 }
             }
 
-            const response = await fetch(`${this.baseUrl}/api/v1/channels/${channelId}/videos`);
+            const response = await this.fetchWithLimit(`${this.baseUrl}/api/v1/channels/${channelId}/videos`);
             if (!response.ok) throw new Error(`Erreur HTTP ${response.status} lors de la récupération des vidéos`);
 
             const data = await response.json();
@@ -177,7 +201,7 @@ class InvidiousService {
      */
     async getVideoDetails(videoId) {
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/videos/${videoId}?local=true`);
+            const response = await this.fetchWithLimit(`${this.baseUrl}/api/v1/videos/${videoId}?local=true`);
             if (!response.ok) throw new Error('Erreur lors de la récupération des détails de la vidéo');
             return await response.json();
         } catch (error) {
@@ -191,7 +215,7 @@ class InvidiousService {
      */
     async getChannelInfo(channelId) {
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/channels/${channelId}`);
+            const response = await this.fetchWithLimit(`${this.baseUrl}/api/v1/channels/${channelId}`);
             if (!response.ok) throw new Error('Erreur lors de la récupération des infos de la chaîne');
             return await response.json();
         } catch (error) {
