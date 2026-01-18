@@ -26,5 +26,13 @@ invidious_companion:
 # PO Token for YouTube authentication (Required to avoid 500 errors)
 # Source for fresh tokens: https://github.com/iv-org/youtube-trusted-session-generator
 po_token: "MnqwAwsvAS-h_b-sQ42nF_K9mJ7044pXjK_r9k-jVjW-_jK7K9jVjW-_jK_r9k-jVjW-_k"
-visitor_data: "CgtZUy1IV3p2Qm5JayitlK63BjIKCgJGUhIEGgAgGA%3D%3D"
 
+
+# Force Android client for better stability with channels
+force_resolve: ipv4
+use_quic: false
+default_user_preferences:
+  default_home: "Trending"
+  feed_menu: ["Popular", "Trending", "Subscriptions", "Playlists"]
+  related_videos: true
+  annotations: false
