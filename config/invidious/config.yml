@@ -11,7 +11,7 @@ local: true
 # Refreshing visitor_data at next restart
 
 # Optimized client for metadata
-client: "ANDROID"
+client: "IOS"
 
 use_pubsub_feeds: false
 hmac_key: "0123456789abcdef"
