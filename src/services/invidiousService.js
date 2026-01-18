@@ -268,12 +268,14 @@ class InvidiousService {
     getBestStreamUrl(videoDetails) {
         if (!videoDetails) return null;
 
-        // 1. Flux HLS (Adaptive Streaming) - Meilleure qualité (Auto) et stabilité
+        // 1. DASH (Adaptive Streaming) - High quality priority for TV client
+        if (videoDetails.dashUrl) return this.normalizeUrl(videoDetails.dashUrl);
+
+        // 2. HLS (Adaptive Streaming) - Auto quality and stability
         if (videoDetails.hlsUrl) return this.normalizeUrl(videoDetails.hlsUrl);
 
-        // 2. Flux combinés de haute qualité (MP4 direct)
-        // Itags YouTube pour les flux combinés (Audio+Video) :
-        // 37: 1080p, 22: 720p, 18: 360p
+        // 3. High quality combined formats (MP4)
+        // YouTube itags: 37: 1080p, 22: 720p, 18: 360p
         const formats = [...(videoDetails.formatStreams || []), ...(videoDetails.adaptiveFormats || [])];
         const priorityItags = ['37', '22', '18', '137', '136', '135', '134'];
 
@@ -284,10 +286,7 @@ class InvidiousService {
             }
         }
 
-        // 3. Fallback DASH (Nécessite souvent dash.js, donc priorité basse)
-        if (videoDetails.dashUrl) return this.normalizeUrl(videoDetails.dashUrl);
-
-        // 4. Fallback vers n'importe quel MP4 direct
+        // 4. Fallback to any MP4
         const anyMp4 = formats.find(s => s.container === 'mp4' && s.url);
         if (anyMp4) return this.normalizeUrl(anyMp4.url);
 
