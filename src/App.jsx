@@ -45,8 +45,7 @@ function App() {
     // React Query Feed
     const { videos: feedVideos, isLoading: feedLoading, isFetching: feedFetching } = useFeed(subscriptions);
 
-    // Debug: Log loading state
-    console.log('[App] State:', { loading, feedLoading, feedFetching, feedVideosCount: feedVideos.length, subscriptionsCount: subscriptions.length, activeTab });
+
 
     useEffect(() => {
         // Initial fallback if no subscriptions
