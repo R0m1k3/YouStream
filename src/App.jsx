@@ -138,18 +138,19 @@ function App() {
                     const shuffled = [...interests].sort(() => 0.5 - Math.random());
                     const selectedInterests = shuffled.slice(0, 2);
 
+                    // Add French context to searches for better localization
+                    const lang = navigator.language?.split('-')[0] || 'fr';
+                    const langPrefix = lang === 'fr' ? 'français ' : (lang === 'en' ? '' : `${lang} `);
+
                     let interestVideos = [];
                     for (const interest of selectedInterests) {
-                        const results = await invidiousService.search(interest, 'video');
+                        const localizedQuery = `${langPrefix}${interest}`;
+                        const results = await invidiousService.search(localizedQuery, 'video');
                         interestVideos.push(...results.slice(0, 10));
                     }
 
-                    // Interests First: 20 interest videos, then 10 trending
-                    const blended = [
-                        ...interestVideos.slice(0, 20),
-                        ...mainVideos.slice(0, 10)
-                    ];
-                    mainVideos = blended;
+                    // Interests Only: no trending videos mixed in
+                    mainVideos = interestVideos.slice(0, 30);
                 }
             }
 
