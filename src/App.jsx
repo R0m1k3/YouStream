@@ -11,7 +11,10 @@ import { useFeed } from './hooks/useFeed';
 const PREDEFINED_INTERESTS = [
     'Intelligence Artificielle', 'Espace & Science', 'High-Tech',
     'Cuisine & Gastronomie', 'ASMR / Relaxation', 'Musique Lo-Fi',
-    'Documentaires', 'Jeux Vidéo', 'Nature & Animaux', 'Actualités'
+    'Documentaires', 'Jeux Vidéo', 'Nature & Écologie', 'Actualités',
+    'DIY & Bricolage', 'Cinéma & Séries', 'Sport & Fitness', 'Histoire & Culture',
+    'Programmation', 'Voyages & Aventure', 'Finance & Économie', 'Design & Art',
+    'Automobile', 'Développement Personnel', 'Humour', 'Astronomie'
 ];
 
 function App() {
@@ -315,6 +318,12 @@ function App() {
                     />
                 </div>
                 <div className="user-profile">
+                    {feedFetching && (
+                        <div className="refresh-indicator header-sync">
+                            <div className="mini-loader"></div>
+                            <span>Synchronisation...</span>
+                        </div>
+                    )}
                     <div className="avatar">M</div>
                 </div>
             </header>
@@ -405,12 +414,6 @@ function App() {
                         ) : (
                             <div className="header-with-status">
                                 <h2>{activeTab === 'new' ? 'Dernières nouveautés' : 'Favoris'}</h2>
-                                {feedFetching && activeTab === 'new' && (
-                                    <div className="refresh-indicator">
-                                        <div className="mini-loader"></div>
-                                        <span>Synchronisation...</span>
-                                    </div>
-                                )}
                             </div>
                         )}
                     </div>

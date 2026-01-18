@@ -8,6 +8,7 @@ db:
 check_tables: true
 force_resolve: ipv4
 local: true
+visitor_data: "CgtvOWc2WlQ5bm1uZyjO9uGdBjIKCgJGUxIEZ3dwBg=="
 
 # Final attempt with TV client for metadata
 client: "TV"
@@ -22,6 +23,7 @@ signature_server_enabled: false
 invidious_companion:
   - private_url: "http://invidious-companion:8282/companion"
     public_url: "http://localhost:8282/companion"
+    token: "0123456789abcdef"
 
 default_user_preferences:
   locale: "fr-FR"

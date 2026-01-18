@@ -8,7 +8,7 @@ class InvidiousService {
         this.baseUrl = window.location.origin;
         this.queue = [];
         this.activeCount = 0;
-        this.maxConcurrent = 1; // Strict limit to avoid 400/500 errors
+        this.maxConcurrency = 1; // Strict limit to avoid 400/500 errors
         this.running = 0;
     }
 
