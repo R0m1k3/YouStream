@@ -139,9 +139,11 @@ class InvidiousService {
                 if (v.authorThumbnails) v.authorThumbnails = v.authorThumbnails.map(t => ({ ...t, url: this.normalizeUrl(t.url) }));
                 return v;
             });
+
         } catch (error) {
-            if (error.name === 'AbortError') return []; // Silent handling for timeouts/unmounts
-            console.error('ChannelVideos error:', error);
+            if (error.name !== 'AbortError') {
+                console.error('ChannelVideos error:', error);
+            }
             return [];
         }
     }
@@ -176,13 +178,16 @@ class InvidiousService {
                 return urlObj.pathname + urlObj.search;
             }
             if (urlObj.pathname.startsWith('/videoplayback')) {
-                return urlObj.pathname + urlObj.search;
+                const separator = urlObj.search ? '&' : '?';
+                return urlObj.pathname + urlObj.search + `${separator}host=${urlObj.hostname}`;
             }
             if (urlObj.pathname.includes('/manifest/')) {
-                return urlObj.pathname + urlObj.search;
+                const separator = urlObj.search ? '&' : '?';
+                return urlObj.pathname + urlObj.search + `${separator}host=${urlObj.hostname}`;
             }
             if (urlObj.pathname.includes('/videoplayback')) {
-                return urlObj.pathname + urlObj.search;
+                const separator = urlObj.search ? '&' : '?';
+                return urlObj.pathname + urlObj.search + `${separator}host=${urlObj.hostname}`;
             }
 
             // Fallback for avatars on ggpht/googleusercontent if not starting with /ggpht/
@@ -234,8 +239,11 @@ class InvidiousService {
             if (video.authorThumbnails) video.authorThumbnails = video.authorThumbnails.map(t => ({ ...t, url: this.normalizeUrl(t.url) }));
 
             return video;
+
         } catch (error) {
-            console.error('VideoDetails error:', error);
+            if (error.name !== 'AbortError') {
+                console.error('VideoDetails error:', error);
+            }
             throw error;
         }
     }
