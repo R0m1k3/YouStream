@@ -11,7 +11,7 @@ local: true
 # Refreshing visitor_data at next restart
 
 # Optimized client for metadata
-client: "IOS"
+client: "TV_HTML5_EMBEDDED"
 
 use_pubsub_feeds: false
 hmac_key: "0123456789abcdef"
@@ -19,6 +19,11 @@ invidious_companion_key: "0123456789abcdef"
 cache_annotations: false
 
 signature_server_enabled: true
+
+invidious_companion:
+  - private_url: "http://invidious-companion:8282/companion"
+    public_url: "http://localhost:8282/companion"
+    token: "0123456789abcdef"
 
 default_user_preferences:
   locale: "fr-FR"

@@ -34,9 +34,11 @@ Implémentation d'un système de gestion de compte (Cookie Import) et améliorat
   - [ ] Débogage des erreurs persistantes 500 et 403
     - [/] Analyser la configuration Invidious et les logs du compagnon
     - [x] Mettre à jour l'image Invidious vers `quay.io/invidious/invidious:master`.
-- [x] Supprimer `INVIDIOUS_VISITOR_DATA` et configurer le client (`WEB`, `ANDROID`, puis `IOS` pour stabilité).
-- [x] Vérifier la résolution des erreurs 500 sur les vidéos de chaînes (fixé via client `IOS`).
-- [x] Vérifier la résolution des erreurs 403 sur la lecture vidéo (via `pot` tokens).
+- [x] Mettre à jour l'image Invidious vers `quay.io/invidious/invidious:master`.
+- [x] Supprimer `INVIDIOUS_VISITOR_DATA` et configurer le client (`TV_HTML5_EMBEDDED` pour stabilité maximale).
+- [x] Configurer `invidious_companion` avec `public_url` local pour la génération de tokens.
+- [x] Vérifier la résolution des erreurs 500 sur les vidéos de chaînes (fixé via client TV).
+- [x] Vérifier la résolution des erreurs 403 sur la lecture vidéo (via `pot` tokens et fallback DASH).
 - [/] Valider l'intégration HLS et le fallback MP4 dans l'UI.
 
 ## Progress Log
