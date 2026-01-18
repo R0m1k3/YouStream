@@ -84,8 +84,8 @@ function App() {
                 return;
             }
 
-            // Fetch in parallel (batch of 10)
-            const batch = missingSubs.slice(0, 10);
+            // Fetch in parallel (batch of 15)
+            const batch = missingSubs.slice(0, 15);
 
             const results = await Promise.allSettled(
                 batch.map(sub => invidiousService.getChannelInfo(sub.authorId))
@@ -105,8 +105,8 @@ function App() {
 
         if (activeTab === 'subs') {
             fetchMissingThumbnails();
-            // Continue loading every 2 seconds until all thumbnails are fetched
-            intervalId = setInterval(fetchMissingThumbnails, 2000);
+            // Continue loading every 3 seconds until all thumbnails are fetched
+            intervalId = setInterval(fetchMissingThumbnails, 3000);
         }
 
         return () => {
@@ -523,7 +523,7 @@ function App() {
                                 className="main-video-player"
                             />
                             <div className="video-details">
-                                <h2 className="video-title">{currentVideo.title}</h2>
+                                <h2 className="video-details-title">{currentVideo.title}</h2>
                                 <div className="video-meta">
                                     <span className="video-author" onClick={() => handleChannelClick({ author: currentVideo.author, authorId: currentVideo.authorId })}>{currentVideo.author}</span>
                                 </div>

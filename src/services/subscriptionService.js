@@ -263,8 +263,18 @@ class SubscriptionService {
             if (res.ok) {
                 const remoteSubs = await res.json();
 
+                // MERGE LOGIC: Backend is source of truth for membership, 
+                // but LocalStorage can have fresher thumbnails/metadata
+                const merged = remoteSubs.map(remote => {
+                    const local = localSubs.find(l => l.authorId === remote.authorId);
+                    if (local && (!remote.authorThumbnails || remote.authorThumbnails.length === 0) && (local.authorThumbnails && local.authorThumbnails.length > 0)) {
+                        return { ...remote, authorThumbnails: local.authorThumbnails };
+                    }
+                    return remote;
+                });
+
                 // CAS MIGRATION : Le backend est vide (nouveau) mais le client a des données
-                if (remoteSubs.length === 0 && localSubs.length > 0) {
+                if (merged.length === 0 && localSubs.length > 0) {
                     console.log('Migration des données locales vers le nouveau backend...');
                     // On envoie tout au backend
                     await this.syncWithBackend(localSubs);
@@ -273,9 +283,8 @@ class SubscriptionService {
                 }
 
                 // CAS NORMAL : Le backend a des données (ou les deux sont vides)
-                // Le backend est la source de vérité
-                localStorage.setItem(STORAGE_KEYS.SUBSCRIPTIONS, JSON.stringify(remoteSubs));
-                return remoteSubs;
+                localStorage.setItem(STORAGE_KEYS.SUBSCRIPTIONS, JSON.stringify(merged));
+                return merged;
             }
         } catch (e) {
             console.warn('Backend unavailable, using local storage:', e);

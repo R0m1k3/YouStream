@@ -13,9 +13,9 @@ class InvidiousService {
     }
 
     getLocaleParams() {
-        const lang = navigator.language || 'fr-FR';
-        const hl = lang.split('-')[0];
-        const region = lang.split('-')[1] || hl.toUpperCase();
+        // Force French for metadata consistency as requested by user
+        const hl = 'fr';
+        const region = 'FR';
         return `hl=${hl}&region=${region}`;
     }
 
