@@ -11,6 +11,14 @@ export default defineConfig({
         target: 'http://localhost:3002', // Port exposé par Docker pour Invidious (3002)
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/invidious/, '')
+      },
+      '/vi': {
+        target: 'http://localhost:3002',
+        changeOrigin: true
+      },
+      '/ggpht': {
+        target: 'http://localhost:3002',
+        changeOrigin: true
       }
     }
   }

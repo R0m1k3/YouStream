@@ -8,14 +8,12 @@ db:
 check_tables: true
 force_resolve: ipv4
 local: true
+domain: "127.0.0.1:3000"
+use_pubsub_feeds: false
 hmac_key: "0123456789abcdef"
 invidious_companion_key: "0123456789abcdef"
 cache_annotations: false
-default_user_preferences:
-  locale: "fr"
-  region: "FR"
-  captions: ["fr", "en"]
-  quality: "dash" # Prefer DASH for better quality selection control
+
 
 # Legacy signature server disabled
 signature_server_enabled: false
@@ -24,3 +22,9 @@ signature_server_enabled: false
 invidious_companion:
   - private_url: "http://invidious-companion:8282/companion"
     public_url: "http://localhost:8282/companion"
+
+# PO Token for YouTube authentication (Required to avoid 500 errors)
+# Source for fresh tokens: https://github.com/iv-org/youtube-trusted-session-generator
+po_token: "MnqwAwsvAS-h_b-sQ42nF_K9mJ7044pXjK_r9k-jVjW-_jK7K9jVjW-_jK_r9k-jVjW-_k"
+visitor_data: "CgtZUy1IV3p2Qm5JayitlK63BjIKCgJGUhIEGgAgGA%3D%3D"
+
