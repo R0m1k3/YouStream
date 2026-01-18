@@ -73,44 +73,44 @@ function App() {
     // Effect : Charger les thumbnails manquantes pour les abonnements
     useEffect(() => {
         let intervalId;
+        let isMounted = true;
 
         const fetchMissingThumbnails = async () => {
-            if (activeTab === 'subs') {
-                const missingSubs = subscriptions.filter(s => !s.authorThumbnails || s.authorThumbnails.length === 0);
-                if (missingSubs.length === 0) {
-                    if (intervalId) clearInterval(intervalId);
-                    return;
-                }
+            if (activeTab !== 'subs' || !isMounted) return;
 
-                // Increased batch to 15 for faster loading
-                const batch = missingSubs.slice(0, 15);
-
-                for (const sub of batch) {
-                    try {
-                        const info = await invidiousService.getChannelInfo(sub.authorId);
-                        if (info && info.authorThumbnails) {
-                            const updatedSub = { ...sub, authorThumbnails: info.authorThumbnails };
-                            subscriptionService.addSubscription(updatedSub);
-                            setSubscriptions(prev => {
-                                const current = prev.find(s => s.authorId === sub.authorId);
-                                if (current && current.authorThumbnails && current.authorThumbnails.length > 0) return prev;
-                                return prev.map(s => s.authorId === sub.authorId ? updatedSub : s);
-                            });
-                        }
-                    } catch (e) {
-                        console.warn('Failed to fetch thumbnail for', sub.author);
-                    }
-                }
+            const missingSubs = subscriptions.filter(s => !s.authorThumbnails || s.authorThumbnails.length === 0);
+            if (missingSubs.length === 0) {
+                if (intervalId) clearInterval(intervalId);
+                return;
             }
+
+            // Fetch in parallel (batch of 10)
+            const batch = missingSubs.slice(0, 10);
+
+            const results = await Promise.allSettled(
+                batch.map(sub => invidiousService.getChannelInfo(sub.authorId))
+            );
+
+            if (!isMounted) return;
+
+            results.forEach((result, index) => {
+                if (result.status === 'fulfilled' && result.value?.authorThumbnails) {
+                    const sub = batch[index];
+                    const updatedSub = { ...sub, authorThumbnails: result.value.authorThumbnails };
+                    subscriptionService.addSubscription(updatedSub);
+                    setSubscriptions(prev => prev.map(s => s.authorId === sub.authorId ? updatedSub : s));
+                }
+            });
         };
 
         if (activeTab === 'subs') {
             fetchMissingThumbnails();
-            // Continue loading every 3 seconds until all thumbnails are fetched
-            intervalId = setInterval(fetchMissingThumbnails, 3000);
+            // Continue loading every 2 seconds until all thumbnails are fetched
+            intervalId = setInterval(fetchMissingThumbnails, 2000);
         }
 
         return () => {
+            isMounted = false;
             if (intervalId) clearInterval(intervalId);
         };
     }, [activeTab, subscriptions.length]);
