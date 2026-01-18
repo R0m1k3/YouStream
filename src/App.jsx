@@ -44,6 +44,9 @@ function App() {
     // React Query Feed
     const { videos: feedVideos, isLoading: feedLoading, isFetching: feedFetching } = useFeed(subscriptions);
 
+    // Debug: Log loading state
+    console.log('[App] State:', { loading, feedLoading, feedFetching, feedVideosCount: feedVideos.length, subscriptionsCount: subscriptions.length, activeTab });
+
     useEffect(() => {
         // Initial fallback if no subscriptions
         if (activeTab === 'new' && subscriptions.length === 0) {
@@ -126,18 +129,25 @@ function App() {
                 // If a specific interest pill is selected, only show that
                 mainVideos = await invidiousService.search(selectedInterest, 'video');
             } else {
-                // 1. Fetch from selected category
+                // 1. Fetch from selected category (trending)
                 mainVideos = await invidiousService.getTrending(discoveryCategory);
 
-                // 2. Blend with Random Interest (if any)
+                // 2. Blend with ALL Interests (prioritize interests)
                 if (interests.length > 0) {
-                    const randomInterest = interests[Math.floor(Math.random() * interests.length)];
-                    const interestResults = await invidiousService.search(randomInterest, 'video');
-                    // Blend: 15 main videos, then 10 interest videos, then the rest
+                    // Pick 2 random interests for variety
+                    const shuffled = [...interests].sort(() => 0.5 - Math.random());
+                    const selectedInterests = shuffled.slice(0, 2);
+
+                    let interestVideos = [];
+                    for (const interest of selectedInterests) {
+                        const results = await invidiousService.search(interest, 'video');
+                        interestVideos.push(...results.slice(0, 10));
+                    }
+
+                    // Interests First: 20 interest videos, then 10 trending
                     const blended = [
-                        ...mainVideos.slice(0, 15),
-                        ...interestResults.slice(0, 10),
-                        ...mainVideos.slice(15)
+                        ...interestVideos.slice(0, 20),
+                        ...mainVideos.slice(0, 10)
                     ];
                     mainVideos = blended;
                 }
