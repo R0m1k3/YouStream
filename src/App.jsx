@@ -350,7 +350,9 @@ function App() {
             const channelVideos = await invidiousService.getChannelVideos(channel.authorId);
             setVideos(channelVideos.filter(v => !subscriptionService.isWatched(v.videoId)));
         } catch (error) {
-            console.error('Erreur chargement vidéos chaîne:', error);
+            if (error.name !== 'AbortError') {
+                console.error('Erreur chargement vidéos chaîne:', error);
+            }
         } finally {
             setLoading(false);
         }
@@ -417,8 +419,10 @@ function App() {
                 alert("Aucun flux vidéo compatible trouvé.");
             }
         } catch (error) {
-            console.error('Erreur lecture vidéo:', error);
-            alert("Impossible de charger la vidéo. Vérifiez votre connexion à Invidious.");
+            if (error.name !== 'AbortError') {
+                console.error('Erreur lecture vidéo:', error);
+                alert("Impossible de charger la vidéo. Vérifiez votre connexion à Invidious.");
+            }
         } finally {
             setActionLoading(false);
         }
