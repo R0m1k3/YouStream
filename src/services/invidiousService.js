@@ -159,21 +159,53 @@ class InvidiousService {
         // Si c'est déjà une URL relative, on s'assure qu'elle est propre
         if (url.startsWith('/')) return url;
 
-        // Si c'est une URL absolue Google/Youtube, on la transforme en relative pour le proxy
         try {
             const urlObj = new URL(url);
-            if (urlObj.pathname.startsWith('/vi/')) {
-                return urlObj.pathname; // /vi/videoId/mqdefault.jpg -> géré par Nginx
+
+            // Gestion des domaines YouTube/Google pour le proxying
+            const hostname = urlObj.hostname;
+
+            // 1. Thumbnails vidéos (i.ytimg.com)
+            if (hostname.includes('ytimg.com')) {
+                // https://i.ytimg.com/vi/ID/hqdefault.jpg -> /vi/ID/hqdefault.jpg
+                // Parfois le path est déjà /vi/, parfois non (ex: /vi_webp/)
+                if (urlObj.pathname.startsWith('/vi/')) {
+                    return urlObj.pathname;
+                }
+                // Si path est /vi_webp/..., on peut tenter de le mapper sur /vi/ ou laisser tel quel si le proxy le gère
+                // Dans le doute, on garde le pathname tel quel s'il commence par /vi, sinon on force
+                // Simplification : on prend le pathname. Le proxy /vi matchera si ça commence par /vi.
+                return `/vi${urlObj.pathname.replace(/^\/vi/, '')}`;
             }
-            if (urlObj.pathname.startsWith('/ggpht/')) {
-                return urlObj.pathname; // /ggpht/... -> géré par Nginx
+
+            // 2. Avatars et images diverses (ggpht.com, googleusercontent.com)
+            if (hostname.includes('ggpht.com') || hostname.includes('googleusercontent.com')) {
+                // https://yt3.ggpht.com/ytc/... -> /ggpht/ytc/...
+                // On préfixe par /ggpht si ce n'est pas déjà le cas
+                if (urlObj.pathname.startsWith('/ggpht/')) {
+                    return urlObj.pathname;
+                }
+                return `/ggpht${urlObj.pathname}`;
             }
-            if (urlObj.pathname.startsWith('/videoplayback')) {
-                // On garde tout le path + les query params
+
+            // 3. Streams vidéos (googlevideo.com)
+            if (hostname.includes('googlevideo.com')) {
+                // https://rrX...googlevideo.com/videoplayback?... -> /videoplayback?...
+                // On garde le path /videoplayback et les query params
                 return urlObj.pathname + urlObj.search;
             }
+
+            // 4. Fallback pour les URLs Invidious absolues déjà formatées
+            if (urlObj.pathname.startsWith('/vi/') || urlObj.pathname.startsWith('/ggpht/')) {
+                return urlObj.pathname;
+            }
+
+            if (urlObj.pathname.startsWith('/videoplayback')) {
+                return urlObj.pathname + urlObj.search;
+            }
+
         } catch (e) {
-            // URL invalide, on laisse telle quelle
+            // URL invalide
         }
         return url;
     }
@@ -215,6 +247,16 @@ class InvidiousService {
      */
     async getChannelInfo(channelId) {
         try {
+            channelId = decodeURIComponent(channelId);
+
+            // Si c'est un handle (@user) ou un nom d'utilisateur (pas un ID UC...), on résout
+            if (channelId.startsWith('@') || !channelId.startsWith('UC')) {
+                const realId = await this.resolveHandle(channelId);
+                if (realId) {
+                    channelId = realId;
+                }
+            }
+
             const response = await this.fetchWithLimit(`${this.baseUrl}/api/v1/channels/${channelId}`);
             if (!response.ok) throw new Error('Erreur lors de la récupération des infos de la chaîne');
             return await response.json();

@@ -19,6 +19,10 @@ export default defineConfig({
       '/ggpht': {
         target: 'http://localhost:3002',
         changeOrigin: true
+      },
+      '/videoplayback': {
+        target: 'http://localhost:3002',
+        changeOrigin: true
       }
     }
   }
