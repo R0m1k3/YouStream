@@ -1,13 +1,12 @@
-/**
- * SubscriptionService - Gère les abonnements et l'état des vidéos lues via localStorage
- */
+import invidiousService from './invidiousService';
 
 const STORAGE_KEYS = {
     SUBSCRIPTIONS: 'youstream_subs',
     WATCHED_VIDEOS: 'youstream_watched',
     FAVORITES: 'youstream_favorites',
     INTERESTS: 'youstream_interests',
-    DISCOVERY_CATEGORY: 'youstream_discovery_cat'
+    DISCOVERY_CATEGORY: 'youstream_discovery_cat',
+    LAST_SYNC: 'youstream_last_sync'
 };
 
 class SubscriptionService {
@@ -25,11 +24,19 @@ class SubscriptionService {
     addSubscription(channel) {
         const subs = this.getSubscriptions();
         if (!subs.find(s => s.authorId === channel.authorId)) {
+            let thumbs = channel.authorThumbnails || [];
+            if (thumbs.length > 0) {
+                thumbs = thumbs.map(t => ({
+                    ...t,
+                    url: invidiousService.normalizeUrl(t.url)
+                }));
+            }
+
             subs.push({
                 author: channel.author,
                 authorId: channel.authorId,
                 authorUrl: channel.authorUrl,
-                authorThumbnails: channel.authorThumbnails
+                authorThumbnails: thumbs
             });
             localStorage.setItem(STORAGE_KEYS.SUBSCRIPTIONS, JSON.stringify(subs));
         }
@@ -258,15 +265,34 @@ class SubscriptionService {
      */
     async fetchSubscriptions() {
         let localSubs = this.getSubscriptions();
+
+        // Cache management: 10 minutes
+        const lastSync = localStorage.getItem(STORAGE_KEYS.LAST_SYNC);
+        const now = Date.now();
+        if (lastSync && (now - parseInt(lastSync) < 1000 * 60 * 10)) {
+            console.log('Subscriptions cache fresh (< 10 min), skipping backend fetch');
+            return localSubs;
+        }
+
         try {
             const res = await fetch('/api/backend/subscriptions');
             if (res.ok) {
                 const remoteSubs = await res.json();
+                localStorage.setItem(STORAGE_KEYS.LAST_SYNC, now.toString());
 
                 // MERGE LOGIC: Backend is source of truth for membership, 
                 // but LocalStorage can have fresher thumbnails/metadata
                 const merged = remoteSubs.map(remote => {
                     const local = localSubs.find(l => l.authorId === remote.authorId);
+
+                    // Normalize remote thumbnails
+                    if (remote.authorThumbnails) {
+                        remote.authorThumbnails = remote.authorThumbnails.map(t => ({
+                            ...t,
+                            url: invidiousService.normalizeUrl(t.url)
+                        }));
+                    }
+
                     if (local && (!remote.authorThumbnails || remote.authorThumbnails.length === 0) && (local.authorThumbnails && local.authorThumbnails.length > 0)) {
                         return { ...remote, authorThumbnails: local.authorThumbnails };
                     }
@@ -345,11 +371,20 @@ class SubscriptionService {
 
             newSubs.forEach(newSub => {
                 if (!mergedSubs.find(s => s.authorId === newSub.authorId)) {
+                    // Normalize thumbnails for new subscriptions
+                    let thumbs = newSub.authorThumbnails || [];
+                    if (thumbs.length > 0) {
+                        thumbs = thumbs.map(t => ({
+                            ...t,
+                            url: invidiousService.normalizeUrl(t.url)
+                        }));
+                    }
+
                     const subToAdd = {
                         author: newSub.author,
                         authorId: newSub.authorId,
                         authorUrl: newSub.authorUrl || `/channel/${newSub.authorId}`,
-                        authorThumbnails: newSub.authorThumbnails || []
+                        authorThumbnails: thumbs
                     };
                     mergedSubs.push(subToAdd);
                     addedSubs.push(subToAdd);

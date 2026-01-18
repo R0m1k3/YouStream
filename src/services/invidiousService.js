@@ -147,17 +147,57 @@ class InvidiousService {
     }
 
     normalizeUrl(url) {
-        if (!url || url.startsWith('/')) return url;
+        if (!url) return url;
+
+        // Handle protocol-relative URLs (e.g., //yt3.ggpht.com/...)
+        if (url.startsWith('//')) {
+            url = 'https:' + url;
+        }
+
+        // If it's already a relative path we handle, keep it
+        if (url.startsWith('/vi/') || url.startsWith('/ggpht/') || url.startsWith('/pam/') || url.startsWith('/manifest/') || url.startsWith('/videoplayback')) {
+            return url;
+        }
+
         try {
             const urlObj = new URL(url);
-            // Proxy logic to bypass CORS and tracking
-            if (urlObj.pathname.startsWith('/vi/') ||
-                urlObj.pathname.startsWith('/ggpht/') ||
-                urlObj.pathname.startsWith('/videoplayback') ||
-                urlObj.pathname.includes('/manifest/')) {
+
+            // Detection of Google/YouTube domains to force proxying
+            const isGoogleHost = urlObj.hostname.includes('ggpht.com') ||
+                urlObj.hostname.includes('ytimg.com') ||
+                urlObj.hostname.includes('googleusercontent.com') ||
+                urlObj.hostname.includes('youtube.com');
+
+            // Extraction of specific paths for proxying
+            if (urlObj.pathname.startsWith('/vi/')) {
                 return urlObj.pathname + urlObj.search;
             }
-        } catch (e) { }
+            if (urlObj.pathname.startsWith('/ggpht/')) {
+                return urlObj.pathname + urlObj.search;
+            }
+            if (urlObj.pathname.startsWith('/videoplayback')) {
+                return urlObj.pathname + urlObj.search;
+            }
+            if (urlObj.pathname.includes('/manifest/')) {
+                return urlObj.pathname + urlObj.search;
+            }
+
+            // Fallback for avatars on ggpht/googleusercontent if not starting with /ggpht/
+            if (isGoogleHost && (urlObj.hostname.includes('ggpht') ||
+                urlObj.hostname.includes('googleusercontent') ||
+                urlObj.pathname.includes('photo.jpg'))) {
+                // Many Invidious instances proxy ggpht/googleusercontent via /ggpht/
+                // We ensure it doesn't double slash
+                const path = urlObj.pathname.startsWith('/') ? urlObj.pathname : '/' + urlObj.pathname;
+                return '/ggpht' + path + urlObj.search;
+            }
+
+        } catch (e) {
+            // If not a valid URL but contains markers, try simple string replacement
+            if (url.includes('/vi/')) return '/vi/' + url.split('/vi/')[1];
+            if (url.includes('/ggpht/')) return '/ggpht/' + url.split('/ggpht/')[1];
+        }
+
         return url;
     }
 
@@ -185,6 +225,11 @@ class InvidiousService {
             const response = await this.enqueue(() => this.fetchWithTimeout(`${this.baseUrl}/api/v1/videos/${videoId}?${locale}`));
             if (!response.ok) return null;
             const video = await response.json();
+
+            // Normalize thumbnails
+            if (video.videoThumbnails) video.videoThumbnails = video.videoThumbnails.map(t => ({ ...t, url: this.normalizeUrl(t.url) }));
+            if (video.authorThumbnails) video.authorThumbnails = video.authorThumbnails.map(t => ({ ...t, url: this.normalizeUrl(t.url) }));
+
             return video;
         } catch (error) {
             console.error('VideoDetails error:', error);
@@ -197,7 +242,12 @@ class InvidiousService {
             const locale = this.getLocaleParams();
             const response = await this.enqueue(() => this.fetchWithTimeout(`${this.baseUrl}/api/v1/channels/${channelId}?${locale}`));
             if (!response.ok) throw new Error('ChannelInfo error');
-            return await response.json();
+            const data = await response.json();
+
+            // Normalize thumbnails
+            if (data.authorThumbnails) data.authorThumbnails = data.authorThumbnails.map(t => ({ ...t, url: this.normalizeUrl(t.url) }));
+
+            return data;
         } catch (error) {
             console.error('ChannelInfo error:', error);
             throw error;
@@ -207,17 +257,21 @@ class InvidiousService {
     getBestStreamUrl(videoDetails) {
         if (!videoDetails) return null;
 
-        // 1. Priorité aux flux HLS si disponibles (souvent plus stables face aux 403 de Google)
-        if (videoDetails.hlsUrl) return this.normalizeUrl(videoDetails.hlsUrl);
-
-        // 2. Recherche par itags prioritaires (720p, 360p stable)
+        // 1. Priorité aux flux combinés de haute qualité (MP4 direct)
+        // Itags YouTube pour les flux combinés (Audio+Video) :
+        // 37: 1080p, 22: 720p, 18: 360p
         const formats = [...(videoDetails.formatStreams || []), ...(videoDetails.adaptiveFormats || [])];
-        const priorityItags = ['22', '18', '137', '136', '135', '134'];
+        const priorityItags = ['37', '22', '18', '137', '136', '135', '134'];
 
         for (const itag of priorityItags) {
             const format = formats.find(s => s.itag === itag);
-            if (format && format.url) return this.normalizeUrl(format.url);
+            if (format && format.url && (format.container === 'mp4' || itag === '22' || itag === '37')) {
+                return this.normalizeUrl(format.url);
+            }
         }
+
+        // 2. Flux HLS si disponibles (souvent plus stables mais parfois limités en résolution sans player spécifique)
+        if (videoDetails.hlsUrl) return this.normalizeUrl(videoDetails.hlsUrl);
 
         // 3. Fallback DASH
         if (videoDetails.dashUrl) return this.normalizeUrl(videoDetails.dashUrl);

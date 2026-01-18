@@ -698,13 +698,17 @@ h1 {
 }
 
 .channel-card-mini .channel-name {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   text-align: center;
   color: var(--text-color);
-  max-width: 120px;
+  max-width: 140px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.2;
+  min-height: 2.4em;
 }
 
 /* Back Button */

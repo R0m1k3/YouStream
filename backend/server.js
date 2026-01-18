@@ -104,7 +104,7 @@ const fetchMissingThumbnails = async () => {
                 // Call Invidious API
                 // We assume Invidious is reachable as 'invidious' hostname in docker network
                 const invidiousUrl = process.env.INVIDIOUS_URL || 'http://invidious:3000';
-                const response = await axios.get(`${invidiousUrl}/api/v1/channels/${row.author_id}`);
+                const response = await axios.get(`${invidiousUrl}/api/v1/channels/${row.author_id}?hl=fr`);
                 const data = response.data;
 
                 if (data.authorThumbnails) {

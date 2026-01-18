@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import invidiousService from './services/invidiousService';
 import subscriptionService from './services/subscriptionService';
@@ -40,6 +40,7 @@ function App() {
     const [favoriteIds, setFavoriteIds] = useState(subscriptionService.getFavorites().map(f => f.videoId));
 
     const YOUTUBE_CLIENT_ID = localStorage.getItem('youstream_yt_client_id') || '';
+    const videoRef = useRef(null);
 
     // React Query Feed
     const { videos: feedVideos, isLoading: feedLoading, isFetching: feedFetching } = useFeed(subscriptions);
@@ -58,7 +59,6 @@ function App() {
         }
     }, [activeTab, subscriptions.length]); // Dropped feedVideos dependency to break the loop
 
-    // Effect : Charger les abonnements depuis le backend (sync) et URL params
     useEffect(() => {
         // Sync avec le backend
         subscriptionService.fetchSubscriptions().then(setSubscriptions);
@@ -69,6 +69,21 @@ function App() {
             handleAutoImport(syncData);
         }
     }, []);
+
+    // Effect : S'assurer que la vidéo se lance bien (fix double-click)
+    useEffect(() => {
+        if (activeTab === 'player' && currentVideo && videoRef.current) {
+            console.log('[Player] Loading and playing video:', currentVideo.videoId);
+            videoRef.current.load();
+            const playPromise = videoRef.current.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.warn('[Player] Auto-play was prevented:', error);
+                    // On peut tenter un retry avec mute si besoin, mais ici c'est une action utilisateur
+                });
+            }
+        }
+    }, [currentVideo?.videoId, activeTab]);
 
     // Effect : Charger les thumbnails manquantes pour les abonnements
     useEffect(() => {
@@ -517,6 +532,8 @@ function App() {
                     ) : activeTab === 'player' && currentVideo ? (
                         <div className="player-view">
                             <video
+                                ref={videoRef}
+                                key={currentVideo.videoId}
                                 controls
                                 autoPlay
                                 src={currentVideo.streamUrl}
