@@ -8,6 +8,7 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+      - ./dist:/usr/share/nginx/html:ro
     environment:
       - NODE_ENV=development
     depends_on:

@@ -7,29 +7,27 @@ db:
 
 check_tables: true
 force_resolve: ipv4
-local: false
-# client: "tv" (removed for default WEB)
-domain: "127.0.0.1:3000"
+local: true
+
+# Final attempt with TV client for metadata
+client: "TV"
+
 use_pubsub_feeds: false
 hmac_key: "0123456789abcdef"
 invidious_companion_key: "0123456789abcdef"
 cache_annotations: false
 
-
-# Legacy signature server disabled
 signature_server_enabled: false
 
-# Invidious Companion Configuration
 invidious_companion:
   - private_url: "http://invidious-companion:8282/companion"
     public_url: "http://localhost:8282/companion"
 
-
-
-
-# Force Android client for better stability with channels
-
 default_user_preferences:
+  locale: "fr-FR"
+  region: "FR"
+  captions: ["fr", "fr-FR", "en"]
+  quality: "dash"
   default_home: "Trending"
   feed_menu: ["Popular", "Trending", "Subscriptions", "Playlists"]
   related_videos: true

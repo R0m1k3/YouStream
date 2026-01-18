@@ -1,18 +1,15 @@
-/**
- * SubscriptionService - Gère les abonnements et l'état des vidéos lues via localStorage
+﻿/**
+ * SubscriptionService - G├¿re les abonnements et l'├®tat des vid├®os lues via localStorage
  */
 
 const STORAGE_KEYS = {
     SUBSCRIPTIONS: 'youstream_subs',
-    WATCHED_VIDEOS: 'youstream_watched',
-    FAVORITES: 'youstream_favorites',
-    INTERESTS: 'youstream_interests',
-    DISCOVERY_CATEGORY: 'youstream_discovery_cat'
+    WATCHED_VIDEOS: 'youstream_watched'
 };
 
 class SubscriptionService {
     /**
-     * Récupère la liste des chaînes abonnées
+     * R├®cup├¿re la liste des cha├«nes abonn├®es
      */
     getSubscriptions() {
         const subs = localStorage.getItem(STORAGE_KEYS.SUBSCRIPTIONS);
@@ -20,7 +17,7 @@ class SubscriptionService {
     }
 
     /**
-     * Ajoute une chaîne aux abonnements
+     * Ajoute une cha├«ne aux abonnements
      */
     addSubscription(channel) {
         const subs = this.getSubscriptions();
@@ -37,7 +34,7 @@ class SubscriptionService {
     }
 
     /**
-     * Supprime une chaîne des abonnements
+     * Supprime une cha├«ne des abonnements
      */
     removeSubscription(channelId) {
         let subs = this.getSubscriptions();
@@ -47,7 +44,7 @@ class SubscriptionService {
     }
 
     /**
-     * Met à jour l'ID d'une chaîne (ex: remplacé handle @... par ID UC...)
+     * Met ├á jour l'ID d'une cha├«ne (ex: remplac├® handle @... par ID UC...)
      */
     updateSubscriptionId(oldId, newId) {
         let subs = this.getSubscriptions();
@@ -62,7 +59,7 @@ class SubscriptionService {
     }
 
     /**
-     * Récupère la liste des IDs de vidéos lues
+     * R├®cup├¿re la liste des IDs de vid├®os lues
      */
     getWatchedVideos() {
         const watched = localStorage.getItem(STORAGE_KEYS.WATCHED_VIDEOS);
@@ -70,7 +67,7 @@ class SubscriptionService {
     }
 
     /**
-     * Marque une vidéo comme lue
+     * Marque une vid├®o comme lue
      */
     markAsWatched(videoId) {
         const watched = this.getWatchedVideos();
@@ -82,52 +79,24 @@ class SubscriptionService {
     }
 
     /**
-     * Vérifie si une vidéo est lue
+     * V├®rifie si une vid├®o est lue
      */
     isWatched(videoId) {
         return this.getWatchedVideos().includes(videoId);
     }
 
     /**
-     * Favorites Logic
-     */
-    getFavorites() {
-        const favs = localStorage.getItem(STORAGE_KEYS.FAVORITES);
-        return favs ? JSON.parse(favs) : [];
-    }
-
-    isFavorite(videoId) {
-        return this.getFavorites().some(f => f.videoId === videoId);
-    }
-
-    addFavorite(video) {
-        const favs = this.getFavorites();
-        if (!favs.find(f => f.videoId === video.videoId)) {
-            favs.push(video);
-            localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(favs));
-        }
-        return favs;
-    }
-
-    removeFavorite(videoId) {
-        let favs = this.getFavorites();
-        favs = favs.filter(f => f.videoId !== videoId);
-        localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(favs));
-        return favs;
-    }
-
-    /**
-     * Importe des abonnements depuis une chaîne Base64 (Bookmarklet)
+     * Importe des abonnements depuis une cha├«ne Base64 (Bookmarklet)
      */
     async importFromBase64(base64String) {
         try {
-            // Tentative 1: Décodage standard UTF-8 (compatible avec btoa(unescape(encodeURIComponent(s))))
+            // Tentative 1: D├®codage standard UTF-8 (compatible avec btoa(unescape(encodeURIComponent(s))))
             const jsonString = decodeURIComponent(escape(atob(base64String)));
             return this.importFromJSON(jsonString);
         } catch (error) {
-            console.warn('Echec décodage standard, tentative fallback...', error);
+            console.warn('Echec d├®codage standard, tentative fallback...', error);
             try {
-                // Tentative 2: Décodage brut (si pas d'encodage URI préalable, ou caractères simples)
+                // Tentative 2: D├®codage brut (si pas d'encodage URI pr├®alable, ou caract├¿res simples)
                 const jsonString = atob(base64String);
                 return this.importFromJSON(jsonString);
             } catch (error2) {
@@ -227,9 +196,9 @@ class SubscriptionService {
                     if (href.includes('/channel/')) {
                         authorId = href.split('/channel/')[1].split('?')[0].split('/')[0];
                     } else {
-                        // Pour les URLs /user/, /c/, /@, on ne peut pas déduire l'ID facilement sans API
-                        // On stocke l'URL comme ID temporaire pour Invidious qui sait souvent gérer les handles
-                        // Mais l'idéal est d'avoir l'ID UC...
+                        // Pour les URLs /user/, /c/, /@, on ne peut pas d├®duire l'ID facilement sans API
+                        // On stocke l'URL comme ID temporaire pour Invidious qui sait souvent g├®rer les handles
+                        // Mais l'id├®al est d'avoir l'ID UC...
                         // Pour l'instant on tente de parser ce qu'on peut
                         const parts = href.split('/');
                         authorId = parts[parts.length - 1] || parts[parts.length - 2];
@@ -238,7 +207,7 @@ class SubscriptionService {
                     if (authorId) {
                         newSubs.push({
                             author: link.textContent.trim(),
-                            authorId: authorId, // Attention: peut être un handle
+                            authorId: authorId, // Attention: peut ├¬tre un handle
                             authorUrl: href,
                             authorThumbnails: []
                         });
@@ -254,7 +223,7 @@ class SubscriptionService {
     }
 
     /**
-     * Récupère la liste des chaînes abonnées (LocalStorage + API Sync)
+     * R├®cup├¿re la liste des cha├«nes abonn├®es (LocalStorage + API Sync)
      */
     async fetchSubscriptions() {
         let localSubs = this.getSubscriptions();
@@ -263,17 +232,17 @@ class SubscriptionService {
             if (res.ok) {
                 const remoteSubs = await res.json();
 
-                // CAS MIGRATION : Le backend est vide (nouveau) mais le client a des données
+                // CAS MIGRATION : Le backend est vide (nouveau) mais le client a des donn├®es
                 if (remoteSubs.length === 0 && localSubs.length > 0) {
-                    console.log('Migration des données locales vers le nouveau backend...');
+                    console.log('Migration des donn├®es locales vers le nouveau backend...');
                     // On envoie tout au backend
                     await this.syncWithBackend(localSubs);
-                    // On retourne les données locales (le backend traitera les thumbnails en arrière-plan)
+                    // On retourne les donn├®es locales (le backend traitera les thumbnails en arri├¿re-plan)
                     return localSubs;
                 }
 
-                // CAS NORMAL : Le backend a des données (ou les deux sont vides)
-                // Le backend est la source de vérité
+                // CAS NORMAL : Le backend a des donn├®es (ou les deux sont vides)
+                // Le backend est la source de v├®rit├®
                 localStorage.setItem(STORAGE_KEYS.SUBSCRIPTIONS, JSON.stringify(remoteSubs));
                 return remoteSubs;
             }
@@ -293,39 +262,6 @@ class SubscriptionService {
         } catch (e) {
             console.error('Failed to sync with backend:', e);
         }
-    }
-
-    /**
-     * Discovery Interests Logic
-     */
-    getInterests() {
-        const interests = localStorage.getItem(STORAGE_KEYS.INTERESTS);
-        return interests ? JSON.parse(interests) : [];
-    }
-
-    addInterest(keyword) {
-        if (!keyword) return;
-        const interests = this.getInterests();
-        if (!interests.includes(keyword)) {
-            interests.push(keyword);
-            localStorage.setItem(STORAGE_KEYS.INTERESTS, JSON.stringify(interests));
-        }
-        return interests;
-    }
-
-    removeInterest(keyword) {
-        const interests = this.getInterests().filter(k => k !== keyword);
-        localStorage.setItem(STORAGE_KEYS.INTERESTS, JSON.stringify(interests));
-        return interests;
-    }
-
-    getDiscoveryCategory() {
-        return localStorage.getItem(STORAGE_KEYS.DISCOVERY_CATEGORY) || 'Trending';
-    }
-
-    setDiscoveryCategory(category) {
-        localStorage.setItem(STORAGE_KEYS.DISCOVERY_CATEGORY, category);
-        return category;
     }
 
     _mergeAndSave(newSubs) {

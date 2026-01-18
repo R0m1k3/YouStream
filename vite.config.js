@@ -8,9 +8,14 @@ export default defineConfig({
     // Configuration du proxy pour contourner CORS en développement
     proxy: {
       '/api/invidious': {
-        target: 'http://127.0.0.1:3002', // Port exposé par Docker pour Invidious (3002)
+        target: 'http://127.0.0.1:3002',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/invidious/, '')
+      },
+      '/api/backend': {
+        target: 'http://127.0.0.1:3001',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/backend/, '/api')
       },
       '/vi': {
         target: 'http://127.0.0.1:3002',

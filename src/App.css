@@ -2,3 +2,118 @@
 .app-container {
     min-height: 100vh;
 }
+
+.category-pills {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+}
+
+.category-pills::-webkit-scrollbar {
+    display: none;
+}
+
+.pill {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    padding: 8px 20px;
+    border-radius: 20px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    font-weight: 500;
+}
+
+.pill:hover {
+    background: var(--hover-color);
+    border-color: var(--accent-color);
+    color: var(--text-color);
+}
+
+.pill.active {
+    background: var(--accent-gradient);
+    border-color: transparent;
+    color: white;
+    box-shadow: var(--shadow-glow);
+}
+
+.interests-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.interest-tag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--hover-color);
+    border: 1px solid var(--border-color);
+    padding: 6px 14px;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    color: var(--text-color);
+}
+
+.interest-tag button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.interest-tag button:hover {
+    color: #f87171;
+}
+
+.suggestions-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.suggestion-badge {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px dashed var(--glass-border);
+    color: var(--text-muted);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.suggestion-badge:hover {
+    background: var(--hover-color);
+    border-style: solid;
+    border-color: var(--accent-color);
+    color: var(--text-color);
+}
+
+.pill-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--glass-border);
+    margin: 0 8px;
+    align-self: center;
+    flex-shrink: 0;
+}
+
+.interest-pill.active {
+    background: linear-gradient(135deg, #a855f7, #ec4899) !important;
+    box-shadow: 0 0 15px rgba(236, 72, 153, 0.4);
+}
+
+.interest-pill {
+    border-color: rgba(168, 85, 247, 0.3) !important;
+}
