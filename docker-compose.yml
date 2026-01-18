@@ -42,7 +42,7 @@ services:
     volumes:
       - ./config/invidious/config.yml:/invidious/config/config.yml
     environment:
-      - INVIDIOUS_INVIDIOUS_COMPANION_PRIVATE_URL=http://invidious-companion:8282
+      - INVIDIOUS_INVIDIOUS_COMPANION_PRIVATE_URL=http://invidious-companion:8282/companion
       - INVIDIOUS_INVIDIOUS_COMPANION_TOKEN_PRIVATE_KEY=0123456789abcdef
       # - INVIDIOUS_VISITOR_DATA=CgtvOWc2WlQ5bm1uZyjO9uGdBjIKCgJGUxIEZ3dwBg==
 

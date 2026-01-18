@@ -7,8 +7,8 @@ db:
 
 check_tables: true
 force_resolve: ipv4
-local: true
-client: "ANDROID"
+local: false
+# client: "tv" (removed for default WEB)
 domain: "127.0.0.1:3000"
 use_pubsub_feeds: false
 hmac_key: "0123456789abcdef"
