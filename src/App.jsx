@@ -72,13 +72,18 @@ function App() {
 
     // Effect : Charger les thumbnails manquantes pour les abonnements
     useEffect(() => {
+        let intervalId;
+
         const fetchMissingThumbnails = async () => {
             if (activeTab === 'subs') {
                 const missingSubs = subscriptions.filter(s => !s.authorThumbnails || s.authorThumbnails.length === 0);
-                if (missingSubs.length === 0) return;
+                if (missingSubs.length === 0) {
+                    if (intervalId) clearInterval(intervalId);
+                    return;
+                }
 
-                // On prend les 5 premiers manquants
-                const batch = missingSubs.slice(0, 5);
+                // Increased batch to 15 for faster loading
+                const batch = missingSubs.slice(0, 15);
 
                 for (const sub of batch) {
                     try {
@@ -101,8 +106,14 @@ function App() {
 
         if (activeTab === 'subs') {
             fetchMissingThumbnails();
+            // Continue loading every 3 seconds until all thumbnails are fetched
+            intervalId = setInterval(fetchMissingThumbnails, 3000);
         }
-    }, [activeTab]);
+
+        return () => {
+            if (intervalId) clearInterval(intervalId);
+        };
+    }, [activeTab, subscriptions.length]);
 
     const handleAutoImport = async (base64Data) => {
         setLoading(true);
