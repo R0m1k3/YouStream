@@ -41,6 +41,7 @@ function App() {
 
     const YOUTUBE_CLIENT_ID = localStorage.getItem('youstream_yt_client_id') || '';
     const videoRef = useRef(null);
+    const hlsRef = useRef(null);
 
     // React Query Feed
     const { videos: feedVideos, isLoading: feedLoading, isFetching: feedFetching } = useFeed(subscriptions);
@@ -69,19 +70,82 @@ function App() {
         }
     }, []);
 
-    // Effect : S'assurer que la vidéo se lance bien (fix double-click)
+    // Effect : S'assurer que la vidéo se lance bien (fix double-click + HLS support)
     useEffect(() => {
         if (activeTab === 'player' && currentVideo && videoRef.current) {
-            console.log('[Player] Loading and playing video:', currentVideo.videoId);
-            videoRef.current.load();
-            const playPromise = videoRef.current.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
+            const video = videoRef.current;
+            const streamUrl = currentVideo.streamUrl;
+
+            console.log('[Player] Loading and playing video:', currentVideo.videoId, 'URL:', streamUrl);
+
+            // Cleanup previous HLS instance and reset video element
+            if (hlsRef.current) {
+                hlsRef.current.destroy();
+                hlsRef.current = null;
+            }
+            video.pause();
+            video.src = '';
+            video.removeAttribute('src');
+            video.load();
+
+            // HLS Support (Adaptive Streaming)
+            if (streamUrl.includes('.m3u8') || streamUrl.includes('/hls/')) {
+                if (window.Hls && window.Hls.isSupported()) {
+                    const hls = new window.Hls({
+                        enableWorker: true,
+                        lowLatencyMode: true,
+                        backBufferLength: 90
+                    });
+                    hls.loadSource(streamUrl);
+                    hls.attachMedia(video);
+                    hlsRef.current = hls;
+                    hls.on(window.Hls.Events.MANIFEST_PARSED, () => {
+                        video.play().catch(e => console.warn('[Player] HLS play prevented:', e));
+                    });
+                    hls.on(window.Hls.Events.ERROR, (event, data) => {
+                        if (data.fatal) {
+                            switch (data.type) {
+                                case window.Hls.ErrorTypes.NETWORK_ERROR:
+                                    console.error('[Player] HLS Network Error, retrying...');
+                                    hls.startLoad();
+                                    break;
+                                case window.Hls.ErrorTypes.MEDIA_ERROR:
+                                    console.error('[Player] HLS Media Error, recovering...');
+                                    hls.recoverMediaError();
+                                    break;
+                                default:
+                                    console.error('[Player] HLS Fatal Error:', data);
+                                    hls.destroy();
+                                    break;
+                            }
+                        }
+                    });
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    // Native HLS support (Safari)
+                    video.src = streamUrl;
+                    video.addEventListener('loadedmetadata', () => {
+                        video.play().catch(e => console.warn('[Player] Native HLS play prevented:', e));
+                    });
+                } else {
+                    console.error('[Player] HLS not supported by this browser.');
+                    alert("Votre navigateur ne supporte pas le format HLS.");
+                }
+            } else {
+                // Progressive download (MP4)
+                video.src = streamUrl;
+                video.load();
+                video.play().catch(error => {
                     console.warn('[Player] Auto-play was prevented:', error);
-                    // On peut tenter un retry avec mute si besoin, mais ici c'est une action utilisateur
                 });
             }
         }
+
+        return () => {
+            if (hlsRef.current) {
+                hlsRef.current.destroy();
+                hlsRef.current = null;
+            }
+        };
     }, [currentVideo?.videoId, activeTab]);
 
     // Effect : Charger les thumbnails manquantes pour les abonnements
@@ -535,7 +599,6 @@ function App() {
                                 key={currentVideo.videoId}
                                 controls
                                 autoPlay
-                                src={currentVideo.streamUrl}
                                 className="main-video-player"
                             />
                             <div className="video-details">

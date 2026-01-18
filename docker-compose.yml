@@ -36,7 +36,7 @@ services:
         condition: service_healthy
 
   invidious:
-    image: quay.io/invidious/invidious:latest
+    image: quay.io/invidious/invidious:master
     restart: always
     ports:
       - "3002:3000" # Expose sur 3002 (3001 occupé)
@@ -45,8 +45,6 @@ services:
     environment:
       - INVIDIOUS_INVIDIOUS_COMPANION_PRIVATE_URL=http://invidious-companion:8282/companion
       - INVIDIOUS_INVIDIOUS_COMPANION_TOKEN_PRIVATE_KEY=0123456789abcdef
-      - INVIDIOUS_VISITOR_DATA=CgtvOWc2WlQ5bm1uZyjO9uGdBjIKCgJGUxIEZ3dwBg==
-
       - INVIDIOUS_HMAC_KEY=0123456789abcdef
       - INVIDIOUS_LOG_LEVEL=debug
     healthcheck:

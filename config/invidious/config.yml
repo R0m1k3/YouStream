@@ -8,22 +8,17 @@ db:
 check_tables: true
 force_resolve: ipv4
 local: true
-visitor_data: "CgtvOWc2WlQ5bm1uZyjO9uGdBjIKCgJGUxIEZ3dwBg=="
+# Refreshing visitor_data at next restart
 
-# Final attempt with TV client for metadata
-client: "TV"
+# Optimized client for metadata
+client: "ANDROID"
 
 use_pubsub_feeds: false
 hmac_key: "0123456789abcdef"
 invidious_companion_key: "0123456789abcdef"
 cache_annotations: false
 
-signature_server_enabled: false
-
-invidious_companion:
-  - private_url: "http://invidious-companion:8282/companion"
-    public_url: "http://localhost:8282/companion"
-    token: "0123456789abcdef"
+signature_server_enabled: true
 
 default_user_preferences:
   locale: "fr-FR"

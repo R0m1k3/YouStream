@@ -155,7 +155,7 @@ class InvidiousService {
         }
 
         // If it's already a relative path we handle, keep it
-        if (url.startsWith('/vi/') || url.startsWith('/ggpht/') || url.startsWith('/pam/') || url.startsWith('/manifest/') || url.startsWith('/videoplayback')) {
+        if (url.startsWith('/vi/') || url.startsWith('/ggpht/') || url.startsWith('/pam/') || url.startsWith('/manifest/') || url.startsWith('/api/manifest/') || url.startsWith('/videoplayback') || url.startsWith('/api/v1/')) {
             return url;
         }
 
@@ -179,6 +179,9 @@ class InvidiousService {
                 return urlObj.pathname + urlObj.search;
             }
             if (urlObj.pathname.includes('/manifest/')) {
+                return urlObj.pathname + urlObj.search;
+            }
+            if (urlObj.pathname.includes('/videoplayback')) {
                 return urlObj.pathname + urlObj.search;
             }
 
@@ -257,7 +260,10 @@ class InvidiousService {
     getBestStreamUrl(videoDetails) {
         if (!videoDetails) return null;
 
-        // 1. Priorité aux flux combinés de haute qualité (MP4 direct)
+        // 1. Flux HLS (Adaptive Streaming) - Meilleure qualité (Auto) et stabilité
+        if (videoDetails.hlsUrl) return this.normalizeUrl(videoDetails.hlsUrl);
+
+        // 2. Flux combinés de haute qualité (MP4 direct)
         // Itags YouTube pour les flux combinés (Audio+Video) :
         // 37: 1080p, 22: 720p, 18: 360p
         const formats = [...(videoDetails.formatStreams || []), ...(videoDetails.adaptiveFormats || [])];
@@ -270,10 +276,7 @@ class InvidiousService {
             }
         }
 
-        // 2. Flux HLS si disponibles (souvent plus stables mais parfois limités en résolution sans player spécifique)
-        if (videoDetails.hlsUrl) return this.normalizeUrl(videoDetails.hlsUrl);
-
-        // 3. Fallback DASH
+        // 3. Fallback DASH (Nécessite souvent dash.js, donc priorité basse)
         if (videoDetails.dashUrl) return this.normalizeUrl(videoDetails.dashUrl);
 
         // 4. Fallback vers n'importe quel MP4 direct
