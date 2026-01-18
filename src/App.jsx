@@ -418,7 +418,8 @@ function App() {
                         )}
                     </div>
 
-                    {loading || (activeTab === 'new' && feedLoading) ? (
+
+                    {(loading || (activeTab === 'new' && feedLoading && feedVideos.length === 0)) ? (
                         <div className="loader-container">
                             <div className="loader"></div>
                             <p>Chargement du flux...</p>
