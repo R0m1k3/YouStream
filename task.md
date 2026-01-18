@@ -40,6 +40,7 @@ Implémentation d'un système de gestion de compte (Cookie Import) et améliorat
 - [x] Vérifier la résolution des erreurs 500 sur les vidéos de chaînes (fixé via client TV).
 - [x] Vérifier la résolution des erreurs 403 sur la lecture vidéo (via `pot` tokens et fallback DASH).
 - [/] Valider l'intégration HLS et le fallback MP4 dans l'UI.
+- [x] Intégrer `dash.js` pour supporter le client `TV_HTML5_EMBEDDED` (lecture des flux .mpd).
 
 ## Progress Log
 

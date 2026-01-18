@@ -42,6 +42,7 @@ function App() {
     const YOUTUBE_CLIENT_ID = localStorage.getItem('youstream_yt_client_id') || '';
     const videoRef = useRef(null);
     const hlsRef = useRef(null);
+    const dashRef = useRef(null);
 
     // React Query Feed
     const { videos: feedVideos, isLoading: feedLoading, isFetching: feedFetching } = useFeed(subscriptions);
@@ -78,18 +79,37 @@ function App() {
 
             console.log('[Player] Loading and playing video:', currentVideo.videoId, 'URL:', streamUrl);
 
-            // Cleanup previous HLS instance and reset video element
+            // Cleanup previous HLS/DASH instance and reset video element
             if (hlsRef.current) {
                 hlsRef.current.destroy();
                 hlsRef.current = null;
+            }
+            if (dashRef.current) {
+                dashRef.current.destroy();
+                dashRef.current = null;
             }
             video.pause();
             video.src = '';
             video.removeAttribute('src');
             video.load();
 
+            // DASH Support (Adaptive Streaming - TV Client Priority)
+            if (streamUrl.includes('.mpd') || streamUrl.includes('/dash/')) {
+                if (window.dashjs) {
+                    const player = window.dashjs.MediaPlayer().create();
+                    player.initialize(video, streamUrl, true);
+                    player.on(window.dashjs.MediaPlayer.events.ERROR, (e) => {
+                        console.error('[Player] DASH Error:', e);
+                    });
+                    dashRef.current = player;
+                    console.log('[Player] Initialized DASH player');
+                } else {
+                    console.error('[Player] DASH.js not loaded.');
+                    alert("Lecture DASH impossible (bibliothèque manquante).");
+                }
+            }
             // HLS Support (Adaptive Streaming)
-            if (streamUrl.includes('.m3u8') || streamUrl.includes('/hls/')) {
+            else if (streamUrl.includes('.m3u8') || streamUrl.includes('/hls/')) {
                 if (window.Hls && window.Hls.isSupported()) {
                     const hls = new window.Hls({
                         enableWorker: true,
@@ -144,6 +164,10 @@ function App() {
             if (hlsRef.current) {
                 hlsRef.current.destroy();
                 hlsRef.current = null;
+            }
+            if (dashRef.current) {
+                dashRef.current.destroy();
+                dashRef.current = null;
             }
         };
     }, [currentVideo?.videoId, activeTab]);
