@@ -25,10 +25,11 @@ export const useFeed = (subscriptions) => {
     const queryResults = useQueries({ queries });
 
     // Status logic:
-    // isLoading: No data available yet for ANY query (Blocking)
+    // isLoading: At least one query is actively loading AND we have no data yet
     // isFetching: Background activity (Non-blocking)
     const hasData = queryResults.some(q => q.data && q.data.length > 0);
-    const isLoading = subscriptions.length > 0 && !hasData && queryResults.some(q => q.isLoading);
+    const allSettled = queryResults.every(q => !q.isLoading);
+    const isLoading = subscriptions.length > 0 && !hasData && !allSettled;
     const isFetching = queryResults.some(q => q.isFetching);
 
     // Aggregation (Stream-friendly)
