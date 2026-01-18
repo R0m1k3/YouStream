@@ -66,10 +66,12 @@ class InvidiousService {
         }
     }
 
-    async search(query, type = 'video') {
+    async search(query, type = 'video', recentOnly = false) {
         try {
             const locale = this.getLocaleParams();
-            const response = await this.enqueue(() => this.fetchWithTimeout(`${this.baseUrl}/api/v1/search?q=${encodeURIComponent(query)}&type=${type}&${locale}`));
+            // Add date filter for recent videos (last month) and sort by upload date
+            const dateFilter = recentOnly ? '&date=month&sort=upload_date' : '';
+            const response = await this.enqueue(() => this.fetchWithTimeout(`${this.baseUrl}/api/v1/search?q=${encodeURIComponent(query)}&type=${type}&${locale}${dateFilter}`));
             if (!response.ok) return [];
             const results = await response.json();
             return results.map(item => {

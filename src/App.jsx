@@ -145,7 +145,8 @@ function App() {
                     let interestVideos = [];
                     for (const interest of selectedInterests) {
                         const localizedQuery = `${langPrefix}${interest}`;
-                        const results = await invidiousService.search(localizedQuery, 'video');
+                        // Use recentOnly=true for last month's videos sorted by upload date
+                        const results = await invidiousService.search(localizedQuery, 'video', true);
                         interestVideos.push(...results.slice(0, 10));
                     }
 
